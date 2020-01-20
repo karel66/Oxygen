@@ -3,3 +3,7 @@
 ################################################################################
 
 /.vs
+/Oxygen/.vs/Oxygen/v16
+/Oxygen/bin/Debug
+/Oxygen/obj
+/Oxygen/Oxygen.csproj.vspscc
