@@ -60,6 +60,19 @@ namespace Oxygen
         /// </summary>
         public static FlowStep If(bool condition, FlowStep step) => (Context context) => condition ? step(context) : context;
 
+        public static FlowStep While(Func<Context, bool> predicate, FlowStep step) => (Context context) =>
+        {
+            Context c = context;
+            while (predicate(c))
+            {
+                if (step != null)
+                {
+                    c = step(c);
+                }
+            }
+            return c;
+        };
+
         /// <summary>
         /// Executes the step only if the condition returns true.
         /// </summary>
