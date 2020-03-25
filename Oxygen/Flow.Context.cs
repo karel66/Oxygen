@@ -20,22 +20,22 @@ namespace Oxygen
             /// <summary>
             /// Selenium driver instance
             /// </summary>
-            public readonly RemoteWebDriver Driver;
+            public RemoteWebDriver Driver { get; private set; }
 
             /// <summary>
             /// Remote web element retrieved by flow step
             /// </summary>
-            public readonly RemoteWebElement Element;
+            public RemoteWebElement Element { get; private set; }
 
             /// <summary>
             /// Collection of elements retrieved by flow step
             /// </summary>
-            public readonly ReadOnlyCollection<IWebElement> Collection;
+            public ReadOnlyCollection<IWebElement> Collection { get; private set; }
 
             /// <summary>
             /// Last problem cause
             /// </summary>
-            public readonly object ProblemCause;
+            public object ProblemCause { get; private set; }
 
             public Context(RemoteWebDriver driver, RemoteWebElement element, ReadOnlyCollection<IWebElement> collection, object problemCause = null)
             {
@@ -45,27 +45,30 @@ namespace Oxygen
                 ProblemCause = problemCause;
             }
 
+            /// <summary>
+            /// Indicates that there is a problem in the context.
+            /// </summary>
             public bool IsProblem => ProblemCause != null;
 
             /// <summary>
-            /// Indicates that there is an RemoteWebElement instance in the context
+            /// Indicates that there is an RemoteWebElement instance in the context.
             /// </summary>
             public bool HasElement => Element != null;
 
             /// <summary>
             /// Returns current browser window title.
             /// </summary>
-            public string Title => Driver != null ? Driver.Title : null;
+            public string Title => Driver?.Title;
 
             /// <summary>
             /// Returns current context element text.
             /// </summary>
-            public string Text => Element != null ? Element.Text : null;
+            public string Text => Element?.Text;
 
             /// <summary>
             /// Returns current context element value attribute.
             /// </summary>
-            public string Value => Element != null ? Element.GetAttribute("value") : null;
+            public string Value => Element?.GetAttribute("value");
 
 
             /// <summary>
@@ -81,6 +84,9 @@ namespace Oxygen
             public Context FromElement(RemoteWebElement element) =>
                 new Context(this.Driver, element, this.Collection);
 
+            /// <summary>
+            /// Set context Element from generator
+            /// </summary>
             public Context FromElement(Func<RemoteWebElement> generator)
             {
                 if (generator == null)
@@ -104,6 +110,9 @@ namespace Oxygen
             public Context FromCollection(ReadOnlyCollection<IWebElement> collection) =>
                 new Context(this.Driver, this.Element, collection);
 
+            /// <summary>
+            /// Set context Collection from generator
+            /// </summary>
             public Context FromCollection(Func<ReadOnlyCollection<IWebElement>> generator)
             {
                 if (generator == null)
@@ -127,6 +136,11 @@ namespace Oxygen
             /// </summary>
             public Context Problem(object problemCause)
             {
+                if (problemCause == null)
+                {
+                    problemCause = "Null passed as problem cause!";
+                }
+
                 System.Diagnostics.Trace.TraceError(problemCause.ToString());
 
                 return new Context(this.Driver, this.Element, this.Collection, problemCause);

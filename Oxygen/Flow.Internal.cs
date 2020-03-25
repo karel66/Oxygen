@@ -60,16 +60,24 @@ namespace Oxygen
             return context.FromCollection(result);
         };
 
-        static bool ExistsByCss(IFindsByCssSelector parent, string selector) => ElementExists(parent.FindElementByCssSelector, selector);
+        static bool ExistsByCss(IFindsByCssSelector parent, string selector, int waitMs = 0) => ElementExists(parent.FindElementByCssSelector, selector, waitMs);
 
-        static bool ElementExists(Func<string, IWebElement> find, string filter)
+        static bool ElementExists(Func<string, IWebElement> find, string filter, int waitMs)
         {
+
             try
             {
-                return (find(filter) as RemoteWebElement) != null;
+                System.Threading.Thread.Sleep(waitMs);
+
+                var result = find(filter) as RemoteWebElement;
+
+                O($"Exists: {filter} : {result != null}");
+
+                return result != null;
             }
             catch (NoSuchElementException)
             {
+                O($"Exists: {filter} : NO");
                 return false;
             }
         }
@@ -120,6 +128,6 @@ namespace Oxygen
             return context.FromCollection(result);
         };
 
-        static bool ExistsByXPath(IFindsByXPath parent, string xpath) => ElementExists(parent.FindElementByXPath, xpath);
+        static bool ExistsByXPath(IFindsByXPath parent, string xpath, int waitMs = 0) => ElementExists(parent.FindElementByXPath, xpath, waitMs);
     }
 }

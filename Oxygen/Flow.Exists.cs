@@ -9,10 +9,10 @@ namespace Oxygen
         /// <summary>
         /// Check for existence of element on page
         /// </summary>
-        public static class Exists
+        protected static class Exists
         {
-            public static bool Element(Context context, string cssSelector) => ExistsByCss(context.Driver, cssSelector);
-            public static bool ByXPath(Context context, string xpath) => ExistsByXPath(context.Driver, xpath);
+            public static bool Element(Context context, string cssSelector, int waitMs = 0) => ExistsByCss(context.Driver, cssSelector, waitMs);
+            public static bool ByXPath(Context context, string xpath, int waitMs = 0) => ExistsByXPath(context.Driver, xpath, waitMs);
         }
     }
 }

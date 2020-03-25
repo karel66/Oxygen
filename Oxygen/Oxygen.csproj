@@ -58,7 +58,6 @@
     <Compile Include="Flow.Context.cs" />
     <Compile Include="Flow.cs" />
     <Compile Include="Flow.Steps.cs" />
-    <Compile Include="HtmlTag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

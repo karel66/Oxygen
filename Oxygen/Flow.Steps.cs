@@ -150,27 +150,18 @@ namespace Oxygen
                 O("MoveToElement failed: " + x.Message);
             }
 
-            Exception clickError = null;
             var result = TryAndWait10Times(() =>
             {
-                try
+                if (c.TagName == "li")
                 {
-                    if (c.TagName == HtmlTag.li.ToString())
-                    {
-                        new Actions(context.Driver).Click(c).Perform();
-                    }
-                    else
-                    {
-                        c.Click();
-                    }
+                    new Actions(context.Driver).Click(c).Perform();
+                }
+                else
+                {
+                    c.Click();
+                }
 
-                    return true;
-                }
-                catch (Exception x)
-                {
-                    clickError = x;
-                    return false;
-                }
+                return true;
             });
 
             if (string.IsNullOrEmpty(result))
@@ -179,7 +170,7 @@ namespace Oxygen
             }
             else
             {
-                return context.Problem(LogError(msg, clickError));
+                return context.Problem(LogError(result));
             }
         }
 
@@ -218,7 +209,7 @@ namespace Oxygen
         /// <summary>
         /// Sets text box, text area and combo text on page
         /// </summary>
-        public static FlowStep SetText(string cssSelector, string text, int index = 0) => (Context context) =>
+        public static FlowStep SetText(string cssSelector, string text) => (Context context) =>
             Element(cssSelector)(context) | SetText(text);
 
         /// <summary>
@@ -239,7 +230,7 @@ namespace Oxygen
 
               try
               {
-                  if (element.TagName == HtmlTag.input.ToString())
+                  if (element.TagName == "input")
                   {
                       if (!string.IsNullOrEmpty(element.GetAttribute("value")))
                       {
@@ -248,12 +239,12 @@ namespace Oxygen
                       }
                       element.SendKeys(value);
                   }
-                  else if (element.TagName == HtmlTag.textarea.ToString())
+                  else if (element.TagName == "textarea")
                   {
                       element.Clear();
                       element.SendKeys(value);
                   }
-                  else if (element.TagName == HtmlTag.select.ToString())
+                  else if (element.TagName == "select")
                   {
                       SetComboText(context.FromElement(element), value);
                   }
@@ -313,7 +304,7 @@ namespace Oxygen
             {
                 if (c.Text != value)
                 {
-                    var item = c.FindElementsByTagName(HtmlTag.option.ToString()).Where(opt => opt.Text == value).FirstOrDefault();
+                    var item = c.FindElementsByTagName("option").Where(opt => opt.Text == value).FirstOrDefault();
 
                     if (item == null)
                     {

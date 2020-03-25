@@ -19,74 +19,86 @@ namespace Oxygen
 
     public partial class Flow
     {
-        public static Context CreateContext(Browser browser, string url)
+        public static Context CreateContext(Browser browser, System.Uri uri)
         {
-            RemoteWebDriver driver = null;
-
-            switch (browser)
+            if (uri == null)
             {
-                case Browser.Chrome:
-                    {
-                        KillBrowserProcesses("chrome");
-
-                        var options = new ChromeOptions
-                        {
-                            PageLoadStrategy = PageLoadStrategy.Normal,
-                            AcceptInsecureCertificates = true
-                        };
-                        driver = new ChromeDriver(options);
-                    }
-                    break;
-
-                case Browser.Edge:
-                    {
-                        KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver");
-
-                        var options = new EdgeOptions
-                        {
-                            PageLoadStrategy = PageLoadStrategy.Normal
-                        };
-                        driver = new EdgeDriver(options);
-                    }
-                    break;
-
-
-                case Browser.FireFox:
-                    {
-                        KillBrowserProcesses("firefox");
-
-                        var options = new FirefoxOptions
-                        {
-                            PageLoadStrategy = PageLoadStrategy.Normal,
-                            AcceptInsecureCertificates = true,
-                            UseLegacyImplementation = false
-                        };
-                        driver = new FirefoxDriver(options);
-                    }
-                    break;
-
-
-                case Browser.IE:
-                    {
-                        KillBrowserProcesses("iexplore");
-
-                        var options = new InternetExplorerOptions
-                        {
-                            PageLoadStrategy = PageLoadStrategy.Normal,
-                            EnableNativeEvents = true,
-                            UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
-                            EnablePersistentHover = true,
-                            IgnoreZoomLevel = false,
-                            IntroduceInstabilityByIgnoringProtectedModeSettings = true,
-                            RequireWindowFocus = false,
-                        };
-                        driver = new InternetExplorerDriver(options);
-                    }
-                    break;
+                throw new ArgumentException(nameof(uri));
             }
 
-            driver.Url = url;
-            return Context.FromDriver(driver);
+            RemoteWebDriver driver = null;
+
+            try
+            {
+                switch (browser)
+                {
+                    case Browser.Chrome:
+                        {
+                            KillBrowserProcesses("chrome");
+
+                            var options = new ChromeOptions
+                            {
+                                PageLoadStrategy = PageLoadStrategy.Normal,
+                                AcceptInsecureCertificates = true
+                            };
+                            driver = new ChromeDriver(options);
+                        }
+                        break;
+
+                    case Browser.Edge:
+                        {
+                            KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver");
+
+                            var options = new EdgeOptions
+                            {
+                                PageLoadStrategy = PageLoadStrategy.Normal
+                            };
+                            driver = new EdgeDriver(options);
+                        }
+                        break;
+
+
+                    case Browser.FireFox:
+                        {
+                            //KillBrowserProcesses("firefox");
+
+                            var options = new FirefoxOptions
+                            {
+                                PageLoadStrategy = PageLoadStrategy.Normal,
+                                AcceptInsecureCertificates = true,
+                                UseLegacyImplementation = false
+                            };
+                            driver = new FirefoxDriver(options);
+                        }
+                        break;
+
+
+                    case Browser.IE:
+                        {
+                            KillBrowserProcesses("iexplore");
+
+                            var options = new InternetExplorerOptions
+                            {
+                                PageLoadStrategy = PageLoadStrategy.Normal,
+                                EnableNativeEvents = true,
+                                UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
+                                EnablePersistentHover = true,
+                                IgnoreZoomLevel = false,
+                                IntroduceInstabilityByIgnoringProtectedModeSettings = true,
+                                RequireWindowFocus = false,
+                            };
+                            driver = new InternetExplorerDriver(options);
+                        }
+                        break;
+                }
+
+                driver.Url = uri.ToString();
+                return Context.FromDriver(driver);
+            }
+            catch (Exception x)
+            {
+                return new Context(null, null, null, x);
+            }
         }
 
         static void KillBrowserProcesses(params string[] processNames)

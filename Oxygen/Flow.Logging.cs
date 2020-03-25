@@ -18,7 +18,7 @@ namespace Oxygen
         /// <param name="message"></param>
         public static string O(string message)
         {
-            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss")} {message}");
+            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} {message}");
             return message;
         }
 
