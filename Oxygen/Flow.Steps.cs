@@ -21,23 +21,27 @@ namespace Oxygen
         /// </summary>
         public static FlowStep Use(FlowStep step, Action<Context> action) => (Context context) =>
         {
-            if (context.IsProblem) return context;
+            if (context.HasProblem) return context;
 
-            if (action == null) return context.Problem("NULL argument in Use(step, action).");
+            if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
 
             return step(context).Use(action);
         };
 
+        /// <summary>
+        /// Provides the step result element for action.
+        /// </summary>
         public static FlowStep Use(FlowStep step, Action<RemoteWebElement> action) => (Context context) =>
         {
-            if (context.IsProblem) return context;
+            if (context.HasProblem) return context;
 
-            if (action == null) return context.Problem("NULL argument in Use(step, action).");
+            if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
+
             try
             {
                 var result = step(context);
 
-                if (!result.IsProblem)
+                if (!result.HasProblem)
                 {
                     action(result.Element);
                 }
@@ -46,7 +50,7 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return context.Problem(x);
+                return context.NewProblem(x);
             }
         };
 
@@ -55,9 +59,9 @@ namespace Oxygen
         /// </summary>
         public static FlowStep Use(Action<Context> action) => (Context context) =>
         {
-            if (context.IsProblem) return context;
+            if (context.HasProblem) return context;
 
-            if (action == null) return context.Problem("NULL argument in GetContext(action).");
+            if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
 
             return context.Use(action);
         };
@@ -67,9 +71,9 @@ namespace Oxygen
         /// </summary>
         public static FlowStep UseElement(Action<RemoteWebElement> action) => (Context context) =>
         {
-            if (context.IsProblem) return context;
+            if (context.HasProblem) return context;
 
-            if (action == null) return context.Problem("NULL argument in GetElement(action).");
+            if (action == null) return context.NewProblem($"{nameof(UseElement)}: NULL action argument.");
 
             try
             {
@@ -77,7 +81,7 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return context.Problem(x);
+                return context.NewProblem(x);
             }
 
             return context;
@@ -85,22 +89,22 @@ namespace Oxygen
 
         static FlowStep CollectionFilter(Func<ReadOnlyCollection<IWebElement>, IWebElement> filter) => (Context context) =>
         {
-            if (context.Collection == null) return context.Problem("Missing collection");
-            if (context.Collection.Count == 0) return context.Problem("Empty collection");
+            if (filter == null) return context.NewProblem($"{nameof(CollectionFilter)}: NULL filter");
+            if (context.Collection == null) return context.NewProblem($"{nameof(CollectionFilter)}: missing collection");
+            if (context.Collection.Count == 0) return context.NewProblem($"{nameof(CollectionFilter)}: empty collection");
 
             IWebElement child = null;
 
-            string errorMsg = TryAndWait10Times(() =>
+            if (!TryUntilSuccess(() =>
             {
                 child = filter(context.Collection);
                 return child != null;
-            });
-
-            if (child == null)
+            }))
             {
-                return context.Problem(LogError(errorMsg, null));
+                return context.NewProblem($"{nameof(CollectionFilter): failed}");
             }
-            return context.FromElement(child as RemoteWebElement);
+
+            return context.NewContext(child as RemoteWebElement);
         };
 
         /// <summary>
@@ -108,10 +112,10 @@ namespace Oxygen
         /// </summary>
         public static FlowStep FirstContainingText(string text) => (Context context) =>
         {
-            var msg = O($"FirstContainingText: '{text}'");
+            var msg = O($"{nameof(FirstContainingText)}: '{text}'");
 
-            return CollectionFilter(collection =>
-                    collection.Where(e => e.Text.Contains(text))
+            return
+                CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
                     .FirstOrDefault())(context);
         };
 
@@ -120,10 +124,10 @@ namespace Oxygen
         /// </summary>
         public static FlowStep LastContainingText(string text) => (Context context) =>
         {
-            var msg = O($"LastContainingText: '{text}'");
+            var msg = O($"{nameof(LastContainingText)}: '{text}'");
 
-            return CollectionFilter(collection =>
-                    collection.Where(e => e.Text.Contains(text))
+            return
+                CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
                     .LastOrDefault())(context);
         };
 
@@ -132,13 +136,13 @@ namespace Oxygen
         /// </summary>
         public static Context Click(Context context)
         {
-            var msg = O("Click");
+            var msg = O($"{nameof(Click)}");
 
             var c = context.Element;
 
             if (c == null)
             {
-                return context.Problem(LogError("Missing context Element!", null));
+                return context.NewProblem(LogError($"{nameof(Click)}: missing context Element!", null));
             }
 
             try
@@ -147,10 +151,10 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                O("MoveToElement failed: " + x.Message);
+                O($"{nameof(Click)}: moveToElement failed: " + x.Message);
             }
 
-            var result = TryAndWait10Times(() =>
+            if (!TryUntilSuccess(() =>
             {
                 if (c.TagName == "li")
                 {
@@ -162,16 +166,12 @@ namespace Oxygen
                 }
 
                 return true;
-            });
+            }))
+            {
+                return context.NewProblem($"{nameof(Click)}: failed");
+            }
 
-            if (string.IsNullOrEmpty(result))
-            {
-                return context;
-            }
-            else
-            {
-                return context.Problem(LogError(result));
-            }
+            return context;
         }
 
         /// <summary>
@@ -181,9 +181,9 @@ namespace Oxygen
         public static FlowStep Click(FlowStep step) => (Context context) => step(context) | Click;
 
         /// <summary>
-        /// Mouse click on page element with given id
+        /// Mouse click on page element returned by CSS selector
         /// </summary>
-        public static FlowStep Click(string elementId) => (Context context) => Element(elementId)(context) | Click;
+        public static FlowStep Click(string selector) => (Context context) => context | Find(selector) | Click;
 
         public static Context DblClick(Context context)
         {
@@ -201,32 +201,32 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return context.Problem(LogError(msg, x));
+                return context.NewProblem(LogError(msg, x));
             }
         }
 
+        public static FlowStep DblClick(string selector) => (Context context) => context | Find(selector) | DblClick;
 
         /// <summary>
         /// Sets text box, text area and combo text on page
         /// </summary>
-        public static FlowStep SetText(string cssSelector, string text) => (Context context) =>
-            Element(cssSelector)(context) | SetText(text);
+        public static FlowStep Fill(string cssSelector, string text) => (Context context) => context | Find(cssSelector) | Fill(text);
 
         /// <summary>
         /// Sets current context element text if text box, text area or dropdown list.
         /// </summary>
-        public static FlowStep SetText(string value) => (Context context) =>
+        public static FlowStep Fill(string text) => (Context context) =>
           {
-              var msg = O($"SetText: '{value}'");
+              var msg = O($"{nameof(Fill)} '{text}'");
 
               if (context.Element == null)
               {
-                  return context.Problem("Missing context Element");
+                  return context.NewProblem($"{nameof(Fill)}: missing context Element");
               }
 
               var element = context.Element;
 
-              TryAndWait10Times(() => element.Displayed);
+              TryUntilSuccess(() => element.Displayed);
 
               try
               {
@@ -237,31 +237,29 @@ namespace Oxygen
                           element.SendKeys(" ");
                           element.Clear();
                       }
-                      element.SendKeys(value);
+                      element.SendKeys(text);
                   }
                   else if (element.TagName == "textarea")
                   {
                       element.Clear();
-                      element.SendKeys(value);
+                      element.SendKeys(text);
                   }
                   else if (element.TagName == "select")
                   {
-                      SetComboText(context.FromElement(element), value);
+                      return Select(context.NewContext(element), text);
                   }
                   else
                   {
-                      return context.Problem($"Unexpected tag <{element.TagName}> in SetText");
+                      return context.NewProblem($"{nameof(Fill)}: unexpected tag <{element.TagName}>");
                   }
               }
               catch (Exception x)
               {
-                  return context.Problem(LogError(msg, x));
+                  return context.NewProblem(LogError(msg, x));
               }
 
               return context;
           };
-
-
 
         public static Context PressEnter(Context context)
         {
@@ -269,7 +267,7 @@ namespace Oxygen
 
             if (c == null)
             {
-                return context.Problem("PressEnter: Missing context element");
+                return context.NewProblem("PressEnter: Missing context element");
             }
 
             var msg = O($"PressEnter: <{c.TagName}>{c.Text}</{c.TagName}>");
@@ -280,7 +278,7 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return context.Problem(LogError(msg, x));
+                return context.NewProblem(LogError(msg, x));
             }
 
             return context;
@@ -289,16 +287,16 @@ namespace Oxygen
         /// <summary>
         /// Select display text in combobox
         /// </summary>
-        public static Context SetComboText(Context context, string value)
+        public static Context Select(Context context, string value)
         {
             var c = context.Element;
 
             if (c == null)
             {
-                return context.Problem("SetComboText: Missing context element");
+                return context.NewProblem($"{nameof(Select)}: Missing context element");
             }
 
-            var msg = O($"SetComboText: {value}");
+            var msg = O($"{nameof(Select)}: {value}");
 
             try
             {
@@ -308,18 +306,18 @@ namespace Oxygen
 
                     if (item == null)
                     {
-                        return context.Problem($"Can't find combo text '{value}'");
+                        return context.NewProblem($"Can't find combo text '{value}'");
                     }
 
                     item.Click();
                 }
 
-                return context.FromElement(c);
+                return context.NewContext(c);
             }
 
             catch (Exception x)
             {
-                return context.Problem(LogError(msg, x));
+                return context.NewProblem(LogError(msg, x));
             }
 
         }
@@ -332,15 +330,15 @@ namespace Oxygen
         /// <returns></returns>
         public static FlowStep FollowLink(string linkID, string targetTitle) => (Context context) =>
           {
-              TryAndWait10Times(() =>
+              TryUntilSuccess(() =>
               {
-                  Element(linkID)(context).Bind(Click);
+                  Click(linkID)(context);
                   return context.Title == targetTitle;
               });
 
               if (context.Title != targetTitle)
               {
-                  return context.Problem($"Expected title '{targetTitle}', actual '{context.Title}'");
+                  return context.NewProblem($"Expected title '{targetTitle}', actual '{context.Title}'");
               }
 
               return context;
@@ -350,19 +348,22 @@ namespace Oxygen
         {
             if (!context.HasElement)
             {
-                return context.Problem($"AssertAttributeValue {attributeName}='{expected}': Missing context element.");
+                return context.NewProblem($"AssertAttributeValue {attributeName}='{expected}': Missing context element.");
             }
 
             var actual = context.Element.GetAttribute(attributeName);
 
             return actual == expected ?
-                context : context.Problem($"Expected {attributeName}='{expected}', actual {attributeName}='{actual}'");
+                context : context.NewProblem($"Expected {attributeName}='{expected}', actual {attributeName}='{actual}'");
         };
 
         public static FlowStep Assertion(Predicate<Context> predicate, string errorMessage) => (Flow.Context context) =>
-            predicate(context) ? context : context.Problem(errorMessage);
+            predicate(context) ? context : context.NewProblem(errorMessage);
+
+		public static FlowStep Assertion(Predicate<Context> predicate, Func<Context, string> errorMessage) => (Flow.Context context) =>
+		   predicate(context) ? context : context.NewProblem(errorMessage(context));
 
 
 
-    }
+	}
 }

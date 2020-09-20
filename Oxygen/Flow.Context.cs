@@ -33,11 +33,18 @@ namespace Oxygen
             public ReadOnlyCollection<IWebElement> Collection { get; private set; }
 
             /// <summary>
-            /// Last problem cause
+            /// Problem cause
             /// </summary>
             public object ProblemCause { get; private set; }
 
-            public Context(RemoteWebDriver driver, RemoteWebElement element, ReadOnlyCollection<IWebElement> collection, object problemCause = null)
+            /// <summary>
+            /// Generic constructor
+            /// </summary>
+            /// <param name="driver"></param>
+            /// <param name="element"></param>
+            /// <param name="collection"></param>
+            /// <param name="problemCause"></param>
+            internal Context(RemoteWebDriver driver, RemoteWebElement element, ReadOnlyCollection<IWebElement> collection, object problemCause = null)
             {
                 Driver = driver;
                 Element = element;
@@ -48,7 +55,7 @@ namespace Oxygen
             /// <summary>
             /// Indicates that there is a problem in the context.
             /// </summary>
-            public bool IsProblem => ProblemCause != null;
+            public bool HasProblem => ProblemCause != null;
 
             /// <summary>
             /// Indicates that there is an RemoteWebElement instance in the context.
@@ -70,63 +77,55 @@ namespace Oxygen
             /// </summary>
             public string Value => Element?.GetAttribute("value");
 
-
-            /// <summary>
-            /// cretaes new context from the driver instance
-            /// </summary>
-            /// <param name="driver"></param>
-            /// <returns></returns>
-            public static Context FromDriver(RemoteWebDriver driver) => new Context(driver, null, null);
-
             /// <summary>
             /// Set context Element
             /// </summary>
-            public Context FromElement(RemoteWebElement element) =>
-                new Context(this.Driver, element, this.Collection);
+            internal Context NewContext(RemoteWebElement element) => new Context(this.Driver, element, this.Collection);
 
             /// <summary>
             /// Set context Element from generator
             /// </summary>
-            public Context FromElement(Func<RemoteWebElement> generator)
+            internal Context NewContext(Func<RemoteWebElement> generator)
             {
-                if (generator == null)
-                {
-                    return this.Problem("Missing element generator.");
-                }
+                if (generator == null) return NewProblem($"{nameof(NewContext)}: NULL argument: {nameof(generator)}");
 
                 try
                 {
-                    return new Context(this.Driver, generator(), this.Collection);
+                    var element = generator();
+
+                    if (element == null) return NewProblem($"{nameof(NewContext)}: {nameof(generator)} produced NULL element.");
+
+                    return NewContext(element);
                 }
                 catch (Exception x)
                 {
-                    return this.Problem(x);
+                    return NewProblem(x);
                 }
             }
 
             /// <summary>
             /// Set context Collection
             /// </summary>
-            public Context FromCollection(ReadOnlyCollection<IWebElement> collection) =>
-                new Context(this.Driver, this.Element, collection);
+            internal Context NewContext(ReadOnlyCollection<IWebElement> collection) => new Context(this.Driver, this.Element, collection);
 
             /// <summary>
             /// Set context Collection from generator
             /// </summary>
-            public Context FromCollection(Func<ReadOnlyCollection<IWebElement>> generator)
+            internal Context NewContext(Func<ReadOnlyCollection<IWebElement>> generator)
             {
-                if (generator == null)
-                {
-                    return this.Problem("Missing collection generator.");
-                }
+                if (generator == null) return NewProblem($"{nameof(NewContext)}: NULL argument: {nameof(generator)}");
 
                 try
                 {
-                    return new Context(this.Driver, this.Element, generator());
+                    var collection = generator();
+
+                    if (collection == null) return NewProblem($"{nameof(NewContext)}: {nameof(generator)} produced NULL collection.");
+
+                    return new Context(this.Driver, this.Element, collection);
                 }
                 catch (Exception x)
                 {
-                    return this.Problem(x);
+                    return NewProblem(x);
                 }
             }
 
@@ -134,7 +133,7 @@ namespace Oxygen
             /// <summary>
             /// Set context Problem
             /// </summary>
-            public Context Problem(object problemCause)
+            public Context NewProblem(object problemCause)
             {
                 if (problemCause == null)
                 {
@@ -152,9 +151,9 @@ namespace Oxygen
             /// </summary>
             public Context Bind(FlowStep step)
             {
-                if (step == null) return this.Problem("NULL argument in Bind(step).");
+                if (this.HasProblem) return this; // short-circuit problems
 
-                if (IsProblem) return this; // short-circuit problems
+                if (step == null) return NewProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
 
                 try
                 {
@@ -162,7 +161,7 @@ namespace Oxygen
                 }
                 catch (Exception x)
                 {
-                    return this.Problem(x);
+                    return NewProblem(x);
                 }
             }
 
@@ -171,9 +170,9 @@ namespace Oxygen
             /// </summary>
             public Context Use(Action<Context> action)
             {
-                if (action == null) return this.Problem("NULL argument in Bind(action).");
-
-                if (IsProblem) return this; // short-circuit problems
+                if (HasProblem) return this; // short-circuit problems
+                
+                if (action == null) return NewProblem($"{nameof(Use)}: NULL argument: {nameof(action)}");
 
                 try
                 {
@@ -182,15 +181,15 @@ namespace Oxygen
                 }
                 catch (Exception x)
                 {
-                    return this.Problem(x);
+                    return NewProblem(x);
                 }
             }
 
             public override string ToString() =>
-              IsProblem ? ProblemCause.ToString() : Driver != null ? Driver.ToString() : "Uninitialized Context";
+              HasProblem ? ProblemCause.ToString() : Driver != null ? Driver.ToString() : "Uninitialized Context";
 
             /// <summary>
-            /// Overloaded | operator for bind.
+            /// Overloaded | operator for Flow.Context.Bind(FlowStep)
             /// </summary>
             public static Context operator |(Context a, FlowStep b) => a.Bind(b);
         }

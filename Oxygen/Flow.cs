@@ -16,84 +16,106 @@ using OpenQA.Selenium.Remote;
 namespace Oxygen
 {
     public delegate Flow.Context FlowStep(Flow.Context context);
-
+    /// <summary>
+    /// Base class for tests.
+    /// </summary>
     public partial class Flow
     {
-        public static Context CreateContext(Browser browser, System.Uri uri)
+        /// <summary>
+        /// Instantiates selected browser.
+        /// </summary>
+        /// <param name="browserBrand">Browser brand to instantiate.</param>
+        /// <param name="startPageUrl">Satrt page URL.</param>
+        /// <param name="killOthers">Optional. If true then other browser instances are closed.</param>
+        /// <param name="driverDirectory">Optional driver directory. If not spcefied then environment PATH is used.</param>
+        /// <param name="options">Specific driver options. Must match the browser brand options type.</param>
+        /// <returns>Driver in context</returns>
+        public static Context CreateContext(BrowserBrand browserBrand, Uri startPageUrl, bool killOthers = false, string driverDirectory = null, DriverOptions options = null)
         {
-            if (uri == null)
-            {
-                throw new ArgumentException(nameof(uri));
-            }
+            if (startPageUrl == null) throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}");
 
             RemoteWebDriver driver = null;
 
             try
             {
-                switch (browser)
+                switch (browserBrand)
                 {
-                    case Browser.Chrome:
+                    case BrowserBrand.Chrome:
                         {
-                            KillBrowserProcesses("chrome");
+                            if (killOthers) KillBrowserProcesses("chrome");
 
-                            var options = new ChromeOptions
+                            if (options == null)
                             {
-                                PageLoadStrategy = PageLoadStrategy.Normal,
-                                AcceptInsecureCertificates = true
-                            };
-                            driver = new ChromeDriver(options);
+                                options = new ChromeOptions
+                                {
+                                    PageLoadStrategy = PageLoadStrategy.Normal,
+                                    AcceptInsecureCertificates = true
+                                };
+                            }
+
+                            driver = driverDirectory != null ? new ChromeDriver(driverDirectory, (ChromeOptions)options) : new ChromeDriver((ChromeOptions)options);
                         }
                         break;
 
-                    case Browser.Edge:
+                    case BrowserBrand.Edge:
                         {
-                            KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver");
+                            if (killOthers) KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver");
 
-                            var options = new EdgeOptions
+                            if (options == null)
                             {
-                                PageLoadStrategy = PageLoadStrategy.Normal
-                            };
-                            driver = new EdgeDriver(options);
-                        }
-                        break;
-
-
-                    case Browser.FireFox:
-                        {
-                            //KillBrowserProcesses("firefox");
-
-                            var options = new FirefoxOptions
-                            {
-                                PageLoadStrategy = PageLoadStrategy.Normal,
-                                AcceptInsecureCertificates = true,
-                                UseLegacyImplementation = false
-                            };
-                            driver = new FirefoxDriver(options);
+                                options = new EdgeOptions
+                                {
+                                    PageLoadStrategy = PageLoadStrategy.Normal
+                                };
+                            }
+                            driver = driverDirectory != null ? new EdgeDriver(driverDirectory, (EdgeOptions)options) : new EdgeDriver((EdgeOptions)options);
                         }
                         break;
 
 
-                    case Browser.IE:
+                    case BrowserBrand.FireFox:
                         {
-                            KillBrowserProcesses("iexplore");
+                            if (killOthers) KillBrowserProcesses("firefox");
 
-                            var options = new InternetExplorerOptions
+                            if (options == null)
                             {
-                                PageLoadStrategy = PageLoadStrategy.Normal,
-                                EnableNativeEvents = true,
-                                UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
-                                EnablePersistentHover = true,
-                                IgnoreZoomLevel = false,
-                                IntroduceInstabilityByIgnoringProtectedModeSettings = true,
-                                RequireWindowFocus = false,
-                            };
-                            driver = new InternetExplorerDriver(options);
+                                options = new FirefoxOptions
+                                {
+                                    PageLoadStrategy = PageLoadStrategy.Normal,
+                                    AcceptInsecureCertificates = true,
+                                    UseLegacyImplementation = false
+                                };
+                            }
+                            driver = driverDirectory != null ? new FirefoxDriver(driverDirectory, (FirefoxOptions)options) : new FirefoxDriver((FirefoxOptions)options);
+                        }
+                        break;
+
+
+                    case BrowserBrand.IE:
+                        {
+                            if (killOthers) KillBrowserProcesses("iexplore");
+
+                            if (options == null)
+                            {
+                                options = new InternetExplorerOptions
+                                {
+                                    PageLoadStrategy = PageLoadStrategy.Normal,
+                                    EnableNativeEvents = true,
+                                    UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
+                                    EnablePersistentHover = true,
+                                    IgnoreZoomLevel = false,
+                                    IntroduceInstabilityByIgnoringProtectedModeSettings = true,
+                                    RequireWindowFocus = false,
+                                };
+                            }
+                            driver = driverDirectory != null ? new InternetExplorerDriver(driverDirectory, (InternetExplorerOptions)options) : new InternetExplorerDriver((InternetExplorerOptions)options);
                         }
                         break;
                 }
 
-                driver.Url = uri.ToString();
-                return Context.FromDriver(driver);
+                driver.Url = startPageUrl.ToString();
+
+                return new Context(driver, null, null);
             }
             catch (Exception x)
             {
@@ -116,40 +138,34 @@ namespace Oxygen
             }
         }
         /// <summary>
-        /// Retries the predicate up to 10 times until true
+        /// Retries until success or the given number of attempts has failed.
         /// </summary>
-        public static string TryAndWait10Times(Func<bool> predicate)
+        public static bool TryUntilSuccess(Func<bool> success, int numberOfAttempts = 10)
         {
-            // Thread.Sleep(100);
-
             int delay = 0;
 
-            string result = string.Empty;
-
-            for (int i = 1; i < 11; i++)
+            for (int i = 1; i <= numberOfAttempts; i++)
             {
                 try
                 {
-                    if (predicate())
+                    if (success())
                     {
-                        return string.Empty;
+                        return true;
                     }
-
-                    O($"RETRY [{i}]");
                 }
                 catch (Exception x)
                 {
-                    O($"RETRY [{i}]: {x.Message} ");
-                    result = x.Message;
+                    O(x.Message);
                 }
 
+                O($"RETRY [{i}]");
+
                 delay += 200;
+
                 Thread.Sleep(delay);
             }
 
-            //SaveScreenshot("TryAndWait10Times");
-
-            return result;
+            return false;
         }
     }
 }

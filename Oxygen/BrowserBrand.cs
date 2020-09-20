@@ -4,9 +4,9 @@ Oxygen Flow library
 namespace Oxygen
 {
     /// <summary>
-    /// Enumerates supported browser types
+    /// Enumerates supported browsers
     /// </summary>
-    public enum Browser
+    public enum BrowserBrand
     {
         Chrome,
         Edge,

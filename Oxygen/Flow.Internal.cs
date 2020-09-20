@@ -17,24 +17,22 @@ namespace Oxygen
         static FlowStep ElementByCss(IFindsByCssSelector parent, string cssSelector, int index = 0) => (Context context) =>
         {
             O($"Element: {cssSelector} [{index}]");
+
             RemoteWebElement child = null;
 
-            string errorMsg = TryAndWait10Times(() =>
+            if (!TryUntilSuccess(() =>
             {
                 child = index == 0 ?
                     parent.FindElementByCssSelector(cssSelector) as RemoteWebElement
                     : parent.FindElementsByCssSelector(cssSelector)[index] as RemoteWebElement;
 
                 return child != null;
-            });
-
-            if (!string.IsNullOrEmpty(errorMsg) || child == null)
+            }))
             {
-                LogError(errorMsg, null);
-                return context.Problem(errorMsg);
+                return context.NewProblem($"{nameof(ElementByCss)}: '{cssSelector}' failed");
             }
 
-            return context.FromElement(child);
+            return context.NewContext(child);
         };
 
 
@@ -44,20 +42,17 @@ namespace Oxygen
 
             ReadOnlyCollection<IWebElement> result = null;
 
-            string errorMsg = TryAndWait10Times(() =>
+            if (!TryUntilSuccess(() =>
             {
                 result = parent.FindElementsByCssSelector(cssSelector);
 
                 return result != null && result.Count > 0; // Satisfied only by non-empty collection
-            });
-
-            if (!string.IsNullOrEmpty(errorMsg) || result == null || result.Count == 0)
+            }))
             {
-                LogError(errorMsg, null);
-                return context.Problem(errorMsg);
+                return context.NewProblem($"{nameof(CollectionByCss)}: '{cssSelector}' failed");
             }
 
-            return context.FromCollection(result);
+            return context.NewContext(result);
         };
 
         static bool ExistsByCss(IFindsByCssSelector parent, string selector, int waitMs = 0) => ElementExists(parent.FindElementByCssSelector, selector, waitMs);
@@ -84,25 +79,22 @@ namespace Oxygen
 
         static FlowStep ElementByXPath(IFindsByXPath parent, string xpath, int index = 0) => (Context context) =>
         {
-            O($"ElementByXPath: {xpath} [{index}]");
+            O($"{nameof(ElementByXPath)}: {xpath} [{index}]");
             RemoteWebElement child = null;
 
-            string errorMsg = TryAndWait10Times(() =>
+            if (!TryUntilSuccess(() =>
             {
                 child = index == 0 ?
                     parent.FindElementByXPath(xpath) as RemoteWebElement
                     : parent.FindElementsByXPath(xpath)[index] as RemoteWebElement;
 
                 return child != null;
-            });
-
-            if (!string.IsNullOrEmpty(errorMsg) || child == null)
+            }))
             {
-                LogError(errorMsg, null);
-                return context.Problem(errorMsg);
+                return context.NewProblem($"{nameof(ElementByXPath)}: '{xpath}' failed");
             }
 
-            return context.FromElement(child);
+            return context.NewContext(child);
         };
 
 
@@ -112,20 +104,17 @@ namespace Oxygen
 
             ReadOnlyCollection<IWebElement> result = null;
 
-            string errorMsg = TryAndWait10Times(() =>
+            if (!TryUntilSuccess(() =>
             {
                 result = parent.FindElementsByXPath(xpath);
 
                 return result != null && result.Count > 0; // Satisfied only by non-empty collection
-            });
-
-            if (!string.IsNullOrEmpty(errorMsg) || result == null || result.Count == 0)
+            }))
             {
-                LogError(errorMsg, null);
-                return context.Problem(errorMsg);
+                return context.NewProblem($"{nameof(CollectionByXPath)}: '{xpath}' failed");
             }
 
-            return context.FromCollection(result);
+            return context.NewContext(result);
         };
 
         static bool ExistsByXPath(IFindsByXPath parent, string xpath, int waitMs = 0) => ElementExists(parent.FindElementByXPath, xpath, waitMs);

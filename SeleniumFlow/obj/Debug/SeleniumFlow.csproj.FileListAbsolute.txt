@@ -1,0 +1,11 @@
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\bin\Debug\SeleniumFlow.dll
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\bin\Debug\SeleniumFlow.pdb
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\bin\Debug\Oxygen.dll
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\bin\Debug\WebDriver.dll
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\bin\Debug\Oxygen.pdb
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\bin\Debug\WebDriver.xml
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\obj\Debug\SeleniumFlow.csprojAssemblyReference.cache
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\obj\Debug\SeleniumFlow.csproj.CoreCompileInputs.cache
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\obj\Debug\SeleniumFlow.csproj.CopyComplete
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\obj\Debug\SeleniumFlow.dll
+C:\Users\karel\Source\Repos\OxygenFlow\SeleniumFlow\obj\Debug\SeleniumFlow.pdb

@@ -2,66 +2,92 @@
 Oxygen Flow library
 */
 
-using System;
-using System.Collections.ObjectModel;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Remote;
+using System;
 
 namespace Oxygen
 {
+    /*
+    Functions targeting the whole web page i.e. driver
+    */
     public partial class Flow
     {
         /// <summary>
         /// Searches element from the whole page.
         /// </summary>
-        public static FlowStep Element(string cssSelector, int index = 0) => (Context context) => ElementByCss(context.Driver, cssSelector, index)(context);
+        public static FlowStep Find(string cssSelector, int index = 0) => (Context context) => ElementByCss(context.Driver, cssSelector, index)(context);
 
         /// <summary>
         /// Searches all elements from the whole page.
         /// </summary>
-        public static FlowStep Collection(string cssSelector) => (Context context) => CollectionByCss(context.Driver, cssSelector)(context);
+        public static FlowStep FindAll(string cssSelector) => (Context context) => CollectionByCss(context.Driver, cssSelector)(context);
 
         /// <summary>
         /// Searches from whole page.
         /// </summary>
-        public static FlowStep ByXPath(string xpath, int index = 0) => (Context context) => ElementByXPath(context.Driver, xpath, index)(context);
+        public static FlowStep FindOnXPath(string xpath, int index = 0) => (Context context) => ElementByXPath(context.Driver, xpath, index)(context);
 
         /// <summary>
         /// Searches from whole page.
         /// </summary>
-        public static FlowStep AllByXPath(string xpath) => (Context context) => CollectionByXPath(context.Driver, xpath)(context);
+        public static FlowStep FindAllOnXPath(string xpath) => (Context context) => CollectionByXPath(context.Driver, xpath)(context);
 
         public static FlowStep Script(string script, params object[] args) => (Context context) =>
         {
-            O($"Script: {script}");
+            O($"{nameof(Script)}: {script}");
             try
             {
                 ((IJavaScriptExecutor)context.Driver).ExecuteScript(script, args);
             }
             catch (Exception x)
             {
-                return context.Problem("Script failed: " + x.Message);
+                return context.NewProblem($"{nameof(Script)}: exception: " + x.Message);
             }
             return context;
         };
 
+
+        /// <summary>
+        /// Check for existence of an element
+        /// </summary>
+        public static bool Exists(Context context, string cssSelector, int waitMs = 0) => ExistsByCss(context.Driver, cssSelector, waitMs);
+
+        /// <summary>
+        /// Check for existence of an element
+        /// </summary>
+        public static bool ExistsOnXPath(Context context, string xpath, int waitMs = 0) => ExistsByXPath(context.Driver, xpath, waitMs);
+
         /// <summary>
         /// Executes the step only if the condition is true.
         /// </summary>
-        public static FlowStep If(bool condition, FlowStep step) => (Context context) => condition ? step(context) : context;
+        public static FlowStep If(bool condition, FlowStep step) => (Context context) =>
+            condition ? step(context) : context;
 
         /// <summary>
         /// Executes the step only if the condition returns true.
         /// </summary>
-        public static FlowStep If(Func<Context, bool> condition, FlowStep step) => (Context context) => condition(context) ? step(context) : context;
+        public static FlowStep If(Func<Context, bool> condition, FlowStep step) => (Context context) =>
+            condition(context) ? step(context) : context;
 
+        /// <summary>
+        /// Executes the step if element by the selector is found
+        /// </summary>
+        public static FlowStep IfExists(string selector, FlowStep step, int waitMs = 0) => (Context context) =>
+            ExistsByCss(context.Driver, selector, waitMs) ? step(context) : context;
+
+        /// <summary>
+        /// Executes the step while the condition returns true.
+        /// </summary>
         public static FlowStep While(Func<Context, bool> condition, FlowStep step) => (Context context) =>
         {
             while (condition(context))
             {
                 context = step(context);
             }
+
             return context;
         };
+
+
     }
 }

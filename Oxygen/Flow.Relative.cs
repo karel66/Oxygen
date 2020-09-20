@@ -14,30 +14,39 @@ namespace Oxygen
             /// <summary>
             /// Searches child element of the current context element.
             /// </summary>
-            public static FlowStep Element(string cssSelector, int index = 0) => (Context context) => ElementByCss(context.Element, cssSelector, index)(context);
+            public static FlowStep Find(string cssSelector, int index = 0) => (Context context) => ElementByCss(context.Element, cssSelector, index)(context);
 
             /// <summary>
             /// Searches all child elements of the current context element.
             /// </summary>
-            public static FlowStep Collection(string cssSelector) => (Context context) => CollectionByCss(context.Element, cssSelector)(context);
+            public static FlowStep FindAll(string cssSelector) => (Context context) => CollectionByCss(context.Element, cssSelector)(context);
 
             /// <summary>
             /// Searches child element of the current context element.
             /// </summary>
-            public static FlowStep ByXPath(string xpath, int index = 0) => (Context context) => ElementByXPath(context.Element, xpath, index)(context);
+            public static FlowStep FindOnXPath(string xpath, int index = 0) => (Context context) => ElementByXPath(context.Element, xpath, index)(context);
 
             /// <summary>
             /// Searches all child elements of the current context element.
             /// </summary>
-            public static FlowStep AllByXPath(string xpath) => (Context context) => CollectionByXPath(context.Element, xpath)(context);
+            public static FlowStep FindAllOnXPath(string xpath) => (Context context) => CollectionByXPath(context.Element, xpath)(context);
 
+            /// <summary>
+            /// Executes the step if child element by the selector is found
+            /// </summary>
+            public static FlowStep IfExists(string selector, FlowStep step, int waitMs = 0) => (Context context) =>
+                ExistsByCss(context.Element, selector, waitMs) ? step(context) : context;
 
-            protected static class Exists
-            {
-                public static bool Element(Context context, string selector) => ExistsByCss(context.Element, selector);
+            /// <summary>
+            /// Check for existence of an element
+            /// </summary>
+            public static bool Exists(Context context, string cssSelector, int waitMs = 0) => ExistsByCss(context.Element, cssSelector, waitMs);
 
-                public static bool ByXPath(Context context, string xpath) => ExistsByXPath(context.Element, xpath);
-            }
+            /// <summary>
+            /// Check for existence of an element
+            /// </summary>
+            public static bool ExistsOnXPath(Context context, string xpath, int waitMs = 0) => ExistsByXPath(context.Element, xpath, waitMs);
+
         }
     }
 }

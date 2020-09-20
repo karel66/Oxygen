@@ -45,21 +45,5 @@ namespace Oxygen
 
             return result;
         }
-
-        /// <summary>
-        /// Saves screenshot in D:\Temp
-        /// </summary>
-        /// <param name="title"></param>
-        public static void SaveScreenshot(RemoteWebDriver drv, string title)
-        {
-            if (drv == null) return;
-
-            var path = $"D:\\Temp\\{title}-{Guid.NewGuid().ToString("N")}.png";
-
-            O($"Screenshot {path}");
-
-            drv.GetScreenshot().SaveAsFile(path);
-
-        }
     }
 }
