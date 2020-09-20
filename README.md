@@ -12,44 +12,20 @@ using Oxygen;
 [TestClass]
 public class SampleTest : Oxygen.Flow
 {
-  [TestMethod]
-  public void GoogleSearchTest()
-  {
-      Flow.Context.Create(Browser.EDGE, "https://www.google.com/")
-      // find and fill search box
-      | AssureWindow("Google")
-      | AllByTag(HtmlTags.input) | FirstByAttribute("title", "Search")
-      | SetText("oxygen-flow")
-      // find and press search button
-      | AllByTag(HtmlTags.input) | FirstByAttribute("value", "Google Search")
-      | Click
-      // assertions ...
-      | AssureWindow("oxygen-flow - Google Search")
-      | ById("resultStats") | AssertTextContains("About ")
-      // etc...
+  [TestClass]
+    public class Demo : Oxygen.Flow
+    {
+        [TestMethod]
+        public void GoogleSearchTest()
+        {
+           var result = 
+                CreateContext(BrowserBrand.FireFox, new Uri("https://www.google.com/"))
+                | Fill("input[name=q]","OxygenFlow")
+                | Click("input[type=submit]")
+                ;
+
+            Assert.IsFalse(result.HasProblem, result.ProblemCause.ToString());
+        }
+    }
 ```
 
-Composed flow steps example:
-```csharp
-using Oxygen;
-using FlowStep Func<Oxygen.Flow.Context, Oxygen.Flow.Context>;
-
-[TestClass]
-public class SampleTest : Oxygen.Flow
-{
-  static FlowStep FillSearchBox(string searchTerm) => (Flow.Context context) =>
-    AllByTag(HtmlTags.input)(context) | FirstByAttribute("title", "Search") | SetText(searchTerm);
-    
-  static Flow.Context ClickSearchButton(Flow.Context context) =>
-    AllByTag(HtmlTags.input)(context) | FirstByAttribute("value", "Google Search") | Click;
-  
-  [TestMethod]
-  public void GoogleSearchTest()
-  {
-      Flow.Context.Create(Browser.EDGE, "https://www.google.com/")
-      | AssureWindow("Google")
-      | FillSearchBox("oxygen-flow")
-      | ClickSearchButton
-      // assertions ...
-      // etc...
-```
