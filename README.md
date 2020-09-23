@@ -5,7 +5,7 @@
 - Full functional composability - group repeating sequences to new flow steps and use these like building blocks.
 - Full flow trace - failing step and context in plain sight, no digging in obscure VM call stacks.
 
-Actual heavy lifting is done by CSS selectors, so one should master the langauage to take full advantage of Oxygen Flow.
+Actual heavy lifting is done by CSS selectors, so one should master the language to take full advantage of Oxygen Flow.
 
 Basic flow steps example:
 ```csharp
