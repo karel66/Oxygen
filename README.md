@@ -10,22 +10,19 @@ Basic flow steps example:
 using Oxygen;
 
 [TestClass]
-public class SampleTest : Oxygen.Flow
+public class Demo : Oxygen.Flow
 {
-  [TestClass]
-    public class Demo : Oxygen.Flow
+    [TestMethod]
+    public void SearchTest()
     {
-        [TestMethod]
-        public void GoogleSearchTest()
-        {
-           var result = 
-                CreateContext(BrowserBrand.FireFox, new Uri("https://www.google.com/"))
-                | Fill("input[name=q]","OxygenFlow")
-                | Click("input[type=submit]")
-                ;
+        var result =
+             CreateContext(BrowserBrand.FireFox, new Uri("https://www.wikipedia.org/"))
+             | Fill("#searchInput", "OxygenFlow")
+             | Click("button[type=submit]")
+             ;
 
-            Assert.IsFalse(result.HasProblem, result.ProblemCause.ToString());
-        }
+        Assert.IsFalse(result.HasProblem, result.HasProblem ? result.ProblemCause.ToString() : null);
     }
+}
 ```
 
