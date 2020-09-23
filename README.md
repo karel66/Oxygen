@@ -2,7 +2,7 @@
 **Functional-style C# Selenium wrapper for automated UI testing.**
 
 - Write web UI test as sequence of piped steps - a flow. 
-- Full functional composability - group repeating sequences to new flow steps and use these like LEGO blocks.
+- Full functional composability - group repeating sequences to new flow steps and use these like building blocks.
 - Full flow trace - failing step and context in plain sight, no digging in obscure VM call stacks.
 
 Basic flow steps example:
