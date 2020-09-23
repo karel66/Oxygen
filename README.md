@@ -26,7 +26,9 @@ public class Demo : Oxygen.Flow
 }
 ```
 Trace produced by the test above:
+```
 08:29:39 Element: #searchInput [0]
 08:29:39 Fill 'OxygenFlow'
 08:29:39 Element: button[type=submit] [0]
 08:29:39 Click
+```
