@@ -3,6 +3,7 @@ Oxygen Flow library
 */
 
 using OpenQA.Selenium;
+
 using System;
 
 namespace Oxygen
@@ -32,18 +33,38 @@ namespace Oxygen
         /// </summary>
         public static FlowStep FindAllOnXPath(string xpath) => (Context context) => CollectionByXPath(context.Driver, xpath)(context);
 
+        /// <summary>
+        /// Switches to iframe in context.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static Context SwitchToFrame(Context context)
+        {
+            O($"SwitchToFrame");
+            try
+            {
+                context.Driver.SwitchTo().Frame(context.Element);
+                return context;
+            }
+            catch (Exception x)
+            {
+                return context.NewProblem($"{nameof(Script)}: exception: " + x.Message);
+            }
+        }
+
+
         public static FlowStep Script(string script, params object[] args) => (Context context) =>
         {
             O($"{nameof(Script)}: {script}");
             try
             {
                 ((IJavaScriptExecutor)context.Driver).ExecuteScript(script, args);
+                return context;
             }
             catch (Exception x)
             {
                 return context.NewProblem($"{nameof(Script)}: exception: " + x.Message);
             }
-            return context;
         };
 
 

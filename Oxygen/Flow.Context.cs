@@ -188,6 +188,8 @@ namespace Oxygen
             public override string ToString() =>
               HasProblem ? ProblemCause.ToString() : Driver != null ? Driver.ToString() : "Uninitialized Context";
 
+            public static implicit operator string(Context c) => c.ToString();
+
             /// <summary>
             /// Overloaded | operator for Flow.Context.Bind(FlowStep)
             /// </summary>
