@@ -2,8 +2,8 @@
 **Functional-style C# Selenium wrapper for automated UI testing.**
 
 - Write web UI test as sequence of piped steps - a flow. 
-- Full functional composability - group repeating sequences to new flow steps and use these like building blocks.
-- Full flow trace - failing step and context in plain sight, no digging in obscure VM call stacks.
+- Full functional composability - repeating sequence of steps can be combined to a new flow step, thus creating components of arbitrary complexity while preserving basic flow step interface.
+- Full trace - failing step and context in plain sight, no digging in deep call stacks.
 
 Actual heavy lifting is done by CSS selectors, so one should master the language to take full advantage of Oxygen Flow.
 
