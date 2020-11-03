@@ -15,7 +15,6 @@ using OpenQA.Selenium.Remote;
 
 namespace Oxygen
 {
-    public delegate Flow.Context FlowStep(Flow.Context context);
     /// <summary>
     /// Base class for tests.
     /// </summary>
@@ -30,6 +29,7 @@ namespace Oxygen
         /// <param name="driverDirectory">Optional driver directory. If not spcefied then environment PATH is used.</param>
         /// <param name="options">Specific driver options. Must match the browser brand options type.</param>
         /// <returns>Driver in context</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context CreateContext(BrowserBrand browserBrand, Uri startPageUrl, bool killOthers = false, string driverDirectory = null, DriverOptions options = null)
         {
             if (startPageUrl == null) throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}");
@@ -123,6 +123,7 @@ namespace Oxygen
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         static void KillBrowserProcesses(params string[] processNames)
         {
             foreach (var pname in processNames)
@@ -136,36 +137,6 @@ namespace Oxygen
                     catch { }
                 }
             }
-        }
-        /// <summary>
-        /// Retries until success or the given number of attempts has failed.
-        /// </summary>
-        public static bool TryUntilSuccess(Func<bool> success, int numberOfAttempts = 10)
-        {
-            int delay = 0;
-
-            for (int i = 1; i <= numberOfAttempts; i++)
-            {
-                try
-                {
-                    if (success())
-                    {
-                        return true;
-                    }
-                }
-                catch (Exception x)
-                {
-                    O(x.Message);
-                }
-
-                O($"RETRY [{i}]");
-
-                delay += 200;
-
-                Thread.Sleep(delay);
-            }
-
-            return false;
         }
     }
 }

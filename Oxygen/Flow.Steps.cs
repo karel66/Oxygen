@@ -15,125 +15,233 @@ namespace Oxygen
 {
     public partial class Flow
     {
-
         /// <summary>
-        /// Provides the step result context for action.
+        /// Run JavaScript.
         /// </summary>
-        public static FlowStep Use(FlowStep step, Action<Context> action) => (Context context) =>
-        {
-            if (context.HasProblem) return context;
-
-            if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
-
-            return step(context).Use(action);
-        };
-
-        /// <summary>
-        /// Provides the step result element for action.
-        /// </summary>
-        public static FlowStep Use(FlowStep step, Action<RemoteWebElement> action) => (Context context) =>
-        {
-            if (context.HasProblem) return context;
-
-            if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
-
-            try
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        public static FlowStep Script(string script, params object[] args) =>
+            (Context context) =>
             {
-                var result = step(context);
-
-                if (!result.HasProblem)
+                O($"{nameof(Script)}: {script}");
+                try
                 {
-                    action(result.Element);
+                    ((IJavaScriptExecutor)context.Driver).ExecuteScript(script, args);
+                    return context;
                 }
-
-                return result;
-            }
-            catch (Exception x)
-            {
-                return context.NewProblem(x);
-            }
-        };
+                catch (Exception x)
+                {
+                    return context.NewProblem($"{nameof(Script)}: exception: " + x.Message);
+                }
+            };
 
         /// <summary>
-        /// Provides current context for action.
+        /// Switches to iframe in context.
         /// </summary>
-        public static FlowStep Use(Action<Context> action) => (Context context) =>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        public static Context SwitchToFrame(Context context)
         {
-            if (context.HasProblem) return context;
-
-            if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
-
-            return context.Use(action);
-        };
-
-        /// <summary>
-        /// Provides current context element for the action.
-        /// </summary>
-        public static FlowStep UseElement(Action<RemoteWebElement> action) => (Context context) =>
-        {
-            if (context.HasProblem) return context;
-
-            if (action == null) return context.NewProblem($"{nameof(UseElement)}: NULL action argument.");
-
+            O($"SwitchToFrame");
             try
             {
-                action(context.Element);
+                context.Driver.SwitchTo().Frame(context.Element);
+                return context;
             }
             catch (Exception x)
             {
-                return context.NewProblem(x);
+                return context.NewProblem($"{nameof(Script)}: exception: " + x.Message);
+            }
+        }
+
+        /// <summary>
+        /// Executes the step only if the condition is true.
+        /// </summary>
+        public static FlowStep If(bool condition, FlowStep step) => (Context context) =>
+            condition ? step(context) : context;
+
+        /// <summary>
+        /// Executes the step only if the condition returns true.
+        /// </summary>
+        public static FlowStep If(Func<Context, bool> condition, FlowStep step) => (Context context) =>
+            condition(context) ? step(context) : context;
+
+        /// <summary>
+        /// Executes the step while the condition returns true.
+        /// </summary>
+        public static FlowStep While(Func<Context, bool> condition, FlowStep step) => (Context context) =>
+        {
+            while (condition(context))
+            {
+                context = step(context);
             }
 
             return context;
         };
 
-        static FlowStep CollectionFilter(Func<ReadOnlyCollection<IWebElement>, IWebElement> filter) => (Context context) =>
+
+        /// <summary>
+        /// Retries until success or the given number of attempts has failed.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        public static bool TryUntilSuccess(Func<bool> success, int numberOfAttempts = 10)
         {
-            if (filter == null) return context.NewProblem($"{nameof(CollectionFilter)}: NULL filter");
-            if (context.Collection == null) return context.NewProblem($"{nameof(CollectionFilter)}: missing collection");
-            if (context.Collection.Count == 0) return context.NewProblem($"{nameof(CollectionFilter)}: empty collection");
 
-            IWebElement child = null;
+            if (success == null) throw new ArgumentNullException(nameof(success));
 
-            if (!TryUntilSuccess(() =>
+            int delay = 0;
+
+            for (int i = 1; i <= numberOfAttempts; i++)
             {
-                child = filter(context.Collection);
-                return child != null;
-            }))
-            {
-                return context.NewProblem($"{nameof(CollectionFilter): failed}");
+                try
+                {
+                    if (success())
+                    {
+                        return true;
+                    }
+                }
+                catch (Exception x)
+                {
+                    O(x.Message);
+                }
+
+                O($"RETRY [{i}]");
+
+                delay += 200;
+
+                Thread.Sleep(delay);
             }
 
-            return context.NewContext(child as RemoteWebElement);
-        };
+            return false;
+        }
+
+        /// <summary>
+        /// Provides the step result context for action.
+        /// </summary>
+        public static FlowStep Use(FlowStep step, Action<Context> action) =>
+            (Context context) =>
+            {
+                if (context.HasProblem) return context;
+
+                if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
+
+                return step(context).Use(action);
+            };
+
+
+        /// <summary>
+        /// Provides the step result element for action.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        public static FlowStep Use(FlowStep step, Action<RemoteWebElement> action) => 
+            (Context context) =>
+            {
+                if (context.HasProblem) return context;
+
+                if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
+
+                try
+                {
+                    var result = step(context);
+
+                    if (!result.HasProblem)
+                    {
+                        action(result.Element);
+                    }
+
+                    return result;
+                }
+                catch (Exception x)
+                {
+                    return context.NewProblem(x);
+                }
+            };
+
+        /// <summary>
+        /// Provides current context for action.
+        /// </summary>
+        public static FlowStep Use(Action<Context> action) => 
+            (Context context) =>
+            {
+                if (context.HasProblem) return context;
+
+                if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
+
+                return context.Use(action);
+            };
+
+        /// <summary>
+        /// Provides current context element for the action.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        public static FlowStep UseElement(Action<RemoteWebElement> action) => 
+            (Context context) =>
+            {
+                if (context.HasProblem) return context;
+
+                if (action == null) return context.NewProblem($"{nameof(UseElement)}: NULL action argument.");
+
+                try
+                {
+                    action(context.Element);
+                }
+                catch (Exception x)
+                {
+                    return context.NewProblem(x);
+                }
+
+                return context;
+            };
+
+        static FlowStep CollectionFilter(Func<ReadOnlyCollection<IWebElement>, IWebElement> filter) => 
+            (Context context) =>
+            {
+                if (filter == null) return context.NewProblem($"{nameof(CollectionFilter)}: NULL filter");
+                if (context.Collection == null) return context.NewProblem($"{nameof(CollectionFilter)}: missing collection");
+                if (context.Collection.Count == 0) return context.NewProblem($"{nameof(CollectionFilter)}: empty collection");
+
+                IWebElement child = null;
+
+                if (!TryUntilSuccess(() =>
+                {
+                    child = filter(context.Collection);
+                    return child != null;
+                }))
+                {
+                    return context.NewProblem($"{nameof(CollectionFilter): failed}");
+                }
+
+                return context.NewContext(child as RemoteWebElement);
+            };
 
         /// <summary>
         /// Returns element from the context Collection
         /// </summary>
-        public static FlowStep FirstContainingText(string text) => (Context context) =>
-        {
-            var msg = O($"{nameof(FirstContainingText)}: '{text}'");
+        public static FlowStep FirstContainingText(string text) => 
+            (Context context) =>
+            {
+                var msg = O($"{nameof(FirstContainingText)}: '{text}'");
 
-            return
-                CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
-                    .FirstOrDefault())(context);
-        };
+                return
+                    CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
+                        .FirstOrDefault())(context);
+            };
 
         /// <summary>
         /// Returns element from context Collection
         /// </summary>
-        public static FlowStep LastContainingText(string text) => (Context context) =>
-        {
-            var msg = O($"{nameof(LastContainingText)}: '{text}'");
+        public static FlowStep LastContainingText(string text) => 
+            (Context context) =>
+            {
+                var msg = O($"{nameof(LastContainingText)}: '{text}'");
 
-            return
-                CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
-                    .LastOrDefault())(context);
-        };
+                return
+                    CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
+                        .LastOrDefault())(context);
+            };
 
         /// <summary>
         /// Mouse click on the context Element
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context Click(Context context)
         {
             var msg = O($"{nameof(Click)}");
@@ -185,6 +293,7 @@ namespace Oxygen
         /// </summary>
         public static FlowStep Click(string selector) => (Context context) => context | Find(selector) | Click;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context DblClick(Context context)
         {
             var msg = O("DblClick");
@@ -215,6 +324,7 @@ namespace Oxygen
         /// <summary>
         /// Sets current context element text if text box, text area or dropdown list.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static FlowStep Fill(string text) => (Context context) =>
           {
               var msg = O($"{nameof(Fill)} '{text}'");
@@ -261,6 +371,7 @@ namespace Oxygen
               return context;
           };
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context PressEnter(Context context)
         {
             var c = context.Element;
@@ -287,6 +398,7 @@ namespace Oxygen
         /// <summary>
         /// Select display text in combobox
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context Select(Context context, string value)
         {
             var c = context.Element;
@@ -325,26 +437,24 @@ namespace Oxygen
         /// <summary>
         /// Clicks teh hyperlink and checks target window title.
         /// </summary>
-        /// <param name="linkID"></param>
-        /// <param name="targetTitle"></param>
-        /// <returns></returns>
-        public static FlowStep FollowLink(string linkID, string targetTitle) => (Context context) =>
-          {
-              TryUntilSuccess(() =>
-              {
-                  Click(linkID)(context);
-                  return context.Title == targetTitle;
-              });
+        public static FlowStep FollowLink(string linkID, string targetTitle) => 
+            (Context context) =>
+            {
+                TryUntilSuccess(() =>
+                {
+                    Click(linkID)(context);
+                    return context.Title == targetTitle;
+                });
 
-              if (context.Title != targetTitle)
-              {
-                  return context.NewProblem($"Expected title '{targetTitle}', actual '{context.Title}'");
-              }
+                if (context.Title != targetTitle)
+                {
+                    return context.NewProblem($"Expected title '{targetTitle}', actual '{context.Title}'");
+                }
 
-              return context;
-          };
+                return context;
+            };
 
-        public static FlowStep AssertAttributeValue(string attributeName, string expected) => (Flow.Context context) =>
+        public static FlowStep AssertAttributeValue(string attributeName, string expected) => (Context context) =>
         {
             if (!context.HasElement)
             {
@@ -357,13 +467,11 @@ namespace Oxygen
                 context : context.NewProblem($"Expected {attributeName}='{expected}', actual {attributeName}='{actual}'");
         };
 
-        public static FlowStep Assertion(Predicate<Context> predicate, string errorMessage) => (Flow.Context context) =>
-            predicate(context) ? context : context.NewProblem(errorMessage);
+        public static FlowStep Assertion(Predicate<Context> predicate, string errorMessage) => 
+            (Context context) => predicate(context) ? context : context.NewProblem(errorMessage);
 
-		public static FlowStep Assertion(Predicate<Context> predicate, Func<Context, string> errorMessage) => (Flow.Context context) =>
-		   predicate(context) ? context : context.NewProblem(errorMessage(context));
+        public static FlowStep Assertion(Predicate<Context> predicate, Func<Context, string> errorMessage) => 
+            (Context context) => predicate(context) ? context : context.NewProblem(errorMessage(context));
 
-
-
-	}
+    }
 }

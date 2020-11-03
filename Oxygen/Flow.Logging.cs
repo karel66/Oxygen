@@ -7,15 +7,17 @@ using OpenQA.Selenium.Remote;
 
 namespace Oxygen
 {
+    /// <summary>
+    /// Logging methods
+    /// </summary>
     public partial class Flow
     {
         const string LogLine = "*************************************************************************";
 
 
         /// <summary>
-        /// Trace output to stdout.
+        /// Trace timestamp and message to stdout.
         /// </summary>
-        /// <param name="message"></param>
         public static string O(string message)
         {
             Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} {message}");
@@ -33,10 +35,12 @@ namespace Oxygen
              return context;
          };
 
-
-        public static string LogError(string msg, Exception x = null)
+        /// <summary>
+        /// Trace message and optional error stack to stdout.
+        /// </summary>
+        public static string LogError(string message, Exception x = null)
         {
-            var result = "FAILED " + msg;
+            var result = "FAILED " + message;
             if (x != null) result += ": " + x.ToString();
 
             O(LogLine);

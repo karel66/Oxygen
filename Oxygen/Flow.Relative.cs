@@ -7,7 +7,7 @@ namespace Oxygen
     public partial class Flow
     {
         /// <summary>
-        /// Searches from the current context element.
+        /// Realtice searches (current element context).
         /// </summary>
         protected static class Relative
         {
@@ -32,21 +32,20 @@ namespace Oxygen
             public static FlowStep FindAllOnXPath(string xpath) => (Context context) => CollectionByXPath(context.Element, xpath)(context);
 
             /// <summary>
-            /// Executes the step if child element by the selector is found
-            /// </summary>
-            public static FlowStep IfExists(string selector, FlowStep step, int waitMs = 0) => (Context context) =>
-                ExistsByCss(context.Element, selector, waitMs) ? step(context) : context;
-
-            /// <summary>
-            /// Check for existence of an element
+            /// Check for existence of an element.
             /// </summary>
             public static bool Exists(Context context, string cssSelector, int waitMs = 0) => ExistsByCss(context.Element, cssSelector, waitMs);
 
             /// <summary>
-            /// Check for existence of an element
+            /// Check for existence of an element.
             /// </summary>
             public static bool ExistsOnXPath(Context context, string xpath, int waitMs = 0) => ExistsByXPath(context.Element, xpath, waitMs);
 
+            /// <summary>
+            /// Executes the step if child element by the selector is found.
+            /// </summary>
+            public static FlowStep IfExists(string selector, FlowStep step, int waitMs = 0) => (Context context) =>
+                ExistsByCss(context.Element, selector, waitMs) ? step(context) : context;
         }
     }
 }
