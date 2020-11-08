@@ -55,15 +55,12 @@ namespace Oxygen
             return context.NewContext(result);
         };
 
-        static bool ExistsByCss(IFindsByCssSelector parent, string selector, int waitMs = 0) => ElementExists(parent.FindElementByCssSelector, selector, waitMs);
+        static bool ExistsByCss(IFindsByCssSelector parent, string selector) => ElementExists(parent.FindElementByCssSelector, selector);
 
-        static bool ElementExists(Func<string, IWebElement> find, string filter, int waitMs)
+        static bool ElementExists(Func<string, IWebElement> find, string filter)
         {
-
             try
             {
-                System.Threading.Thread.Sleep(waitMs);
-
                 var result = find(filter) as RemoteWebElement;
 
                 O($"Exists: {filter} : {result != null}");
@@ -117,6 +114,6 @@ namespace Oxygen
             return context.NewContext(result);
         };
 
-        static bool ExistsByXPath(IFindsByXPath parent, string xpath, int waitMs = 0) => ElementExists(parent.FindElementByXPath, xpath, waitMs);
+        static bool ExistsByXPath(IFindsByXPath parent, string xpath) => ElementExists(parent.FindElementByXPath, xpath);
     }
 }

@@ -2,6 +2,8 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using OpenQA.Selenium;
+
 using Oxygen;
 
 namespace UnitTests
@@ -15,7 +17,7 @@ namespace UnitTests
             var result =
                  CreateContext(BrowserBrand.FireFox, new Uri("https://github.com/"))
                  | Find("input[type=text][name=q]")
-                 | Fill("OxygenFlow")
+                 | SetText("OxygenFlow")
                  | Click("ul[id=jump-to-results]")
                  ;
 
@@ -27,12 +29,12 @@ namespace UnitTests
         {
             var result =
                 CreateContext(BrowserBrand.Chrome, new Uri("https://www.google.com/"), true, @"C:\Selenium")
+                | Use((Context context) => context.Driver.Manage().Timeouts().ImplicitWait=TimeSpan.FromSeconds(30))
                 // Agree to Google terms if presented
-                | IfExists("iframe",
-                    (Context context) => context | Find("iframe") | SwitchToFrame | Find("div#introAgreeButton") | Click, 
-                    1000)
+                | IfExists("iframe", 
+                    (Context context) => context | Find("iframe") | SwitchToFrame | Find("div#introAgreeButton") | Click)
                 //
-                | Fill("input[name=q]", "OxygenFlow")
+                | SetText("input[name=q]", "OxygenFlow")
                 | Click("input[type=submit]")
                 ;
 

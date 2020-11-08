@@ -319,19 +319,19 @@ namespace Oxygen
         /// <summary>
         /// Sets text box, text area and combo text on page
         /// </summary>
-        public static FlowStep Fill(string cssSelector, string text) => (Context context) => context | Find(cssSelector) | Fill(text);
+        public static FlowStep SetText(string cssSelector, string text) => (Context context) => context | Find(cssSelector) | SetText(text);
 
         /// <summary>
         /// Sets current context element text if text box, text area or dropdown list.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        public static FlowStep Fill(string text) => (Context context) =>
+        public static FlowStep SetText(string text) => (Context context) =>
           {
-              var msg = O($"{nameof(Fill)} '{text}'");
+              var msg = O($"{nameof(SetText)} '{text}'");
 
               if (context.Element == null)
               {
-                  return context.NewProblem($"{nameof(Fill)}: missing context Element");
+                  return context.NewProblem($"{nameof(SetText)}: missing context Element");
               }
 
               var element = context.Element;
@@ -360,7 +360,7 @@ namespace Oxygen
                   }
                   else
                   {
-                      return context.NewProblem($"{nameof(Fill)}: unexpected tag <{element.TagName}>");
+                      return context.NewProblem($"{nameof(SetText)}: unexpected tag <{element.TagName}>");
                   }
               }
               catch (Exception x)

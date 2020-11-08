@@ -34,18 +34,18 @@ namespace Oxygen
             /// <summary>
             /// Check for existence of an element.
             /// </summary>
-            public static bool Exists(Context context, string cssSelector, int waitMs = 0) => ExistsByCss(context.Element, cssSelector, waitMs);
+            public static bool Exists(Context context, string cssSelector) => ExistsByCss(context.Element, cssSelector);
 
             /// <summary>
             /// Check for existence of an element.
             /// </summary>
-            public static bool ExistsOnXPath(Context context, string xpath, int waitMs = 0) => ExistsByXPath(context.Element, xpath, waitMs);
+            public static bool ExistsOnXPath(Context context, string xpath) => ExistsByXPath(context.Element, xpath);
 
             /// <summary>
             /// Executes the step if child element by the selector is found.
             /// </summary>
-            public static FlowStep IfExists(string selector, FlowStep step, int waitMs = 0) => (Context context) =>
-                ExistsByCss(context.Element, selector, waitMs) ? step(context) : context;
+            public static FlowStep IfExists(string selector, FlowStep step) =>
+                (Context context) => ExistsByCss(context.Element, selector) ? step(context) : context;
         }
     }
 }

@@ -37,17 +37,17 @@ namespace Oxygen
         /// <summary>
         /// Check for existence of an element
         /// </summary>
-        public static bool Exists(Context context, string cssSelector, int waitMs = 0) => ExistsByCss(context.Driver, cssSelector, waitMs);
+        public static bool Exists(Context context, string cssSelector) => ExistsByCss(context.Driver, cssSelector);
 
         /// <summary>
         /// Check for existence of an element
         /// </summary>
-        public static bool ExistsOnXPath(Context context, string xpath, int waitMs = 0) => ExistsByXPath(context.Driver, xpath, waitMs);
+        public static bool ExistsOnXPath(Context context, string xpath) => ExistsByXPath(context.Driver, xpath);
 
         /// <summary>
         /// Executes the step if element by the selector is found
         /// </summary>
-        public static FlowStep IfExists(string selector, FlowStep step, int waitMs = 0) => (Context context) =>
-            ExistsByCss(context.Driver, selector, waitMs) ? step(context) : context;
+        public static FlowStep IfExists(string selector, FlowStep step) =>
+                (Context context) => ExistsByCss(context.Driver, selector) ? step(context) : context;
     }
 }
