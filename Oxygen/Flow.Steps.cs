@@ -53,6 +53,30 @@ namespace Oxygen
         }
 
         /// <summary>
+        /// Locates and switches to the iframe.
+        /// </summary>
+        public static FlowStep SwitchToFrame(string iframeSelector) => 
+                (Context context) => context | Find(iframeSelector) | SwitchToFrame;
+
+        /// <summary>
+        /// Switches to main or first frame in context.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        public static Context SwitchToDefault(Context context)
+        {
+            O($"SwitchToDefault");
+            try
+            {
+                context.Driver.SwitchTo().DefaultContent();
+                return context;
+            }
+            catch (Exception x)
+            {
+                return context.NewProblem($"{nameof(Script)}: exception: " + x.Message);
+            }
+        }
+
+        /// <summary>
         /// Executes the step only if the condition is true.
         /// </summary>
         public static FlowStep If(bool condition, FlowStep step) => (Context context) =>
