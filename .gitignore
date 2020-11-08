@@ -8,3 +8,5 @@
 /Oxygen/obj
 /Oxygen/Oxygen.csproj.vspscc
 /Oxygen/packages/Selenium.WebDriver.3.141.0
+/UnitTests/bin/Debug
+/UnitTests/obj/Debug
