@@ -2,14 +2,12 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using OpenQA.Selenium;
-
 using Oxygen;
 
 namespace UnitTests
 {
     [TestClass]
-    public class Demo : Oxygen.Flow
+    public class Demo : Flow
     {
         [TestMethod]
         public void SearchTestFF()
@@ -29,9 +27,9 @@ namespace UnitTests
         {
             var result =
                 CreateContext(BrowserBrand.Chrome, new Uri("https://www.google.com/"), true, @"C:\Selenium")
-                | Use((Context context) => context.Driver.Manage().Timeouts().ImplicitWait=TimeSpan.FromSeconds(30))
+                | Use((Context context) => context.Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30))
                 // Agree to Google terms if presented
-                | IfExists("iframe", 
+                | IfExists("iframe",
                     (Context context) => context | Find("iframe") | SwitchToFrame | Find("div#introAgreeButton") | Click)
                 //
                 | SetText("input[name=q]", "OxygenFlow")

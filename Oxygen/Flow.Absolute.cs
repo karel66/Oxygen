@@ -2,10 +2,6 @@
 Oxygen Flow library
 */
 
-using OpenQA.Selenium;
-
-using System;
-
 namespace Oxygen
 {
     /// <summary>

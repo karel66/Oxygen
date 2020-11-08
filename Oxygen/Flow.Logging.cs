@@ -3,7 +3,6 @@ Oxygen Flow library
 */
 
 using System;
-using OpenQA.Selenium.Remote;
 
 namespace Oxygen
 {

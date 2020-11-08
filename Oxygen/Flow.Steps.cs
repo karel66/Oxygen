@@ -131,7 +131,7 @@ namespace Oxygen
         /// Provides the step result element for action.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        public static FlowStep Use(FlowStep step, Action<RemoteWebElement> action) => 
+        public static FlowStep Use(FlowStep step, Action<RemoteWebElement> action) =>
             (Context context) =>
             {
                 if (context.HasProblem) return context;
@@ -158,7 +158,7 @@ namespace Oxygen
         /// <summary>
         /// Provides current context for action.
         /// </summary>
-        public static FlowStep Use(Action<Context> action) => 
+        public static FlowStep Use(Action<Context> action) =>
             (Context context) =>
             {
                 if (context.HasProblem) return context;
@@ -172,7 +172,7 @@ namespace Oxygen
         /// Provides current context element for the action.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        public static FlowStep UseElement(Action<RemoteWebElement> action) => 
+        public static FlowStep UseElement(Action<RemoteWebElement> action) =>
             (Context context) =>
             {
                 if (context.HasProblem) return context;
@@ -191,7 +191,7 @@ namespace Oxygen
                 return context;
             };
 
-        static FlowStep CollectionFilter(Func<ReadOnlyCollection<IWebElement>, IWebElement> filter) => 
+        static FlowStep CollectionFilter(Func<ReadOnlyCollection<IWebElement>, IWebElement> filter) =>
             (Context context) =>
             {
                 if (filter == null) return context.NewProblem($"{nameof(CollectionFilter)}: NULL filter");
@@ -215,7 +215,7 @@ namespace Oxygen
         /// <summary>
         /// Returns element from the context Collection
         /// </summary>
-        public static FlowStep FirstContainingText(string text) => 
+        public static FlowStep FirstContainingText(string text) =>
             (Context context) =>
             {
                 var msg = O($"{nameof(FirstContainingText)}: '{text}'");
@@ -228,7 +228,7 @@ namespace Oxygen
         /// <summary>
         /// Returns element from context Collection
         /// </summary>
-        public static FlowStep LastContainingText(string text) => 
+        public static FlowStep LastContainingText(string text) =>
             (Context context) =>
             {
                 var msg = O($"{nameof(LastContainingText)}: '{text}'");
@@ -437,7 +437,7 @@ namespace Oxygen
         /// <summary>
         /// Clicks teh hyperlink and checks target window title.
         /// </summary>
-        public static FlowStep FollowLink(string linkID, string targetTitle) => 
+        public static FlowStep FollowLink(string linkID, string targetTitle) =>
             (Context context) =>
             {
                 TryUntilSuccess(() =>
@@ -467,10 +467,10 @@ namespace Oxygen
                 context : context.NewProblem($"Expected {attributeName}='{expected}', actual {attributeName}='{actual}'");
         };
 
-        public static FlowStep Assertion(Predicate<Context> predicate, string errorMessage) => 
+        public static FlowStep Assertion(Predicate<Context> predicate, string errorMessage) =>
             (Context context) => predicate(context) ? context : context.NewProblem(errorMessage);
 
-        public static FlowStep Assertion(Predicate<Context> predicate, Func<Context, string> errorMessage) => 
+        public static FlowStep Assertion(Predicate<Context> predicate, Func<Context, string> errorMessage) =>
             (Context context) => predicate(context) ? context : context.NewProblem(errorMessage(context));
 
     }
