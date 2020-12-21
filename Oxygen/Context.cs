@@ -13,7 +13,6 @@ namespace Oxygen
     /// <summary>
     /// Flow context with monadic Bind. 
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "<Pending>")]
     public struct Context
     {
         /// <summary>
@@ -22,39 +21,35 @@ namespace Oxygen
         public RemoteWebDriver Driver { get; private set; }
 
         /// <summary>
-        /// Remote web element retrieved by flow step
+        /// Remote web element
         /// </summary>
         public RemoteWebElement Element { get; private set; }
 
         /// <summary>
-        /// Collection of elements retrieved by flow step
+        /// Collection of elements
         /// </summary>
         public ReadOnlyCollection<IWebElement> Collection { get; private set; }
 
         /// <summary>
-        /// Problem cause
+        /// Run-time error result
         /// </summary>
-        public object ProblemCause { get; private set; }
+        public object Problem { get; private set; }
 
         /// <summary>
         /// Generic constructor
         /// </summary>
-        /// <param name="driver"></param>
-        /// <param name="element"></param>
-        /// <param name="collection"></param>
-        /// <param name="problemCause"></param>
-        internal Context(RemoteWebDriver driver, RemoteWebElement element, ReadOnlyCollection<IWebElement> collection, object problemCause = null)
+        internal Context(RemoteWebDriver driver, RemoteWebElement element, ReadOnlyCollection<IWebElement> collection, object problem = null)
         {
             Driver = driver;
             Element = element;
             Collection = collection;
-            ProblemCause = problemCause;
+            Problem = problem;
         }
 
         /// <summary>
         /// Indicates that there is a problem in the context.
         /// </summary>
-        public bool HasProblem => ProblemCause != null;
+        public bool HasProblem => Problem != null;
 
         /// <summary>
         /// Indicates that there is an RemoteWebElement instance in the context.
@@ -79,56 +74,46 @@ namespace Oxygen
         /// <summary>
         /// Set context Element
         /// </summary>
-        internal Context NewContext(RemoteWebElement element) => new Context(this.Driver, element, this.Collection);
+        internal Context NextContext(RemoteWebElement element) => new Context(this.Driver, element, this.Collection);
 
 
         /// <summary>
         /// Set context Element from generator
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        internal Context NewContext(Func<RemoteWebElement> generator)
+        internal Context NextContext(Func<RemoteWebElement> generator)
         {
-            if (generator == null) return NewProblem($"{nameof(NewContext)}: NULL argument: {nameof(generator)}");
+            if (generator == null) return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
 
             try
             {
-                var element = generator();
-
-                if (element == null) return NewProblem($"{nameof(NewContext)}: {nameof(generator)} produced NULL element.");
-
-                return NewContext(element);
+                return NextContext(generator.Invoke());
             }
             catch (Exception x)
             {
-                return NewProblem(x);
+                return CreateProblem(x);
             }
         }
 
         /// <summary>
         /// Set context Collection
         /// </summary>
-        internal Context NewContext(ReadOnlyCollection<IWebElement> collection) => new Context(this.Driver, this.Element, collection);
+        internal Context NextContext(ReadOnlyCollection<IWebElement> collection) => new Context(this.Driver, this.Element, collection);
 
 
         /// <summary>
         /// Set context Collection from generator
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        internal Context NewContext(Func<ReadOnlyCollection<IWebElement>> generator)
+        internal Context NextContext(Func<ReadOnlyCollection<IWebElement>> generator)
         {
-            if (generator == null) return NewProblem($"{nameof(NewContext)}: NULL argument: {nameof(generator)}");
+            if (generator == null) return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
 
             try
             {
-                var collection = generator();
-
-                if (collection == null) return NewProblem($"{nameof(NewContext)}: {nameof(generator)} produced NULL collection.");
-
-                return new Context(this.Driver, this.Element, collection);
+                return new Context(this.Driver, this.Element, generator.Invoke());
             }
             catch (Exception x)
             {
-                return NewProblem(x);
+                return CreateProblem(x);
             }
         }
 
@@ -136,29 +121,24 @@ namespace Oxygen
         /// <summary>
         /// Set context Problem
         /// </summary>
-        public Context NewProblem(object problemCause)
+        public Context CreateProblem(object problem)
         {
-            if (problemCause == null)
-            {
-                problemCause = "Null passed as problem cause!";
-            }
+            if (problem == null) problem = "Null passed as problem!";
 
-            System.Diagnostics.Trace.TraceError(problemCause.ToString());
+            System.Diagnostics.Trace.TraceError(problem.ToString());
 
-            return new Context(this.Driver, this.Element, this.Collection, problemCause);
+            return new Context(this.Driver, this.Element, this.Collection, problem);
         }
-
 
 
         /// <summary>
         /// Monadic bind. 
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public Context Bind(FlowStep step)
         {
             if (this.HasProblem) return this; // short-circuit problems
 
-            if (step == null) return NewProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
+            if (step == null) return CreateProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
 
             try
             {
@@ -166,7 +146,7 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return NewProblem(x);
+                return CreateProblem(x);
             }
         }
 
@@ -174,12 +154,11 @@ namespace Oxygen
         /// <summary>
         /// Action bind.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public Context Use(Action<Context> action)
         {
-            if (HasProblem) return this; // short-circuit problems
+            if (this.HasProblem) return this; // short-circuit problems
 
-            if (action == null) return NewProblem($"{nameof(Use)}: NULL argument: {nameof(action)}");
+            if (action == null) return CreateProblem($"{nameof(Use)}: NULL argument: {nameof(action)}");
 
             try
             {
@@ -188,12 +167,12 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return NewProblem(x);
+                return CreateProblem(x);
             }
         }
 
         public override string ToString() =>
-          HasProblem ? ProblemCause.ToString() : Driver != null ? Driver.ToString() : "Uninitialized Context";
+          HasProblem ? Problem.ToString() : Driver != null ? Driver.ToString() : "Uninitialized Context";
 
         public static implicit operator string(Context c) => c.ToString();
 
@@ -201,7 +180,6 @@ namespace Oxygen
         /// <summary>
         /// Overloaded | operator for Context.Bind(FlowStep)
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "<Pending>")]
         public static Context operator |(Context a, FlowStep b) => a.Bind(b);
 
     }

@@ -29,10 +29,10 @@ namespace Oxygen
                 return child != null;
             }))
             {
-                return context.NewProblem($"{nameof(ElementByCss)}: '{cssSelector}' failed");
+                return context.CreateProblem($"{nameof(ElementByCss)}: '{cssSelector}' failed");
             }
 
-            return context.NewContext(child);
+            return context.NextContext(child);
         };
 
 
@@ -49,10 +49,10 @@ namespace Oxygen
                 return result != null && result.Count > 0; // Satisfied only by non-empty collection
             }))
             {
-                return context.NewProblem($"{nameof(CollectionByCss)}: '{cssSelector}' failed");
+                return context.CreateProblem($"{nameof(CollectionByCss)}: '{cssSelector}' failed");
             }
 
-            return context.NewContext(result);
+            return context.NextContext(result);
         };
 
         static bool ExistsByCss(IFindsByCssSelector parent, string selector) => ElementExists(parent.FindElementByCssSelector, selector);
@@ -88,10 +88,10 @@ namespace Oxygen
                 return child != null;
             }))
             {
-                return context.NewProblem($"{nameof(ElementByXPath)}: '{xpath}' failed");
+                return context.CreateProblem($"{nameof(ElementByXPath)}: '{xpath}' failed");
             }
 
-            return context.NewContext(child);
+            return context.NextContext(child);
         };
 
 
@@ -108,10 +108,10 @@ namespace Oxygen
                 return result != null && result.Count > 0; // Satisfied only by non-empty collection
             }))
             {
-                return context.NewProblem($"{nameof(CollectionByXPath)}: '{xpath}' failed");
+                return context.CreateProblem($"{nameof(CollectionByXPath)}: '{xpath}' failed");
             }
 
-            return context.NewContext(result);
+            return context.NextContext(result);
         };
 
         static bool ExistsByXPath(IFindsByXPath parent, string xpath) => ElementExists(parent.FindElementByXPath, xpath);

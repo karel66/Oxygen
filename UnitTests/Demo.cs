@@ -26,11 +26,10 @@ namespace UnitTests
         public void SearchTestChrome()
         {
             var result =
-                CreateContext(BrowserBrand.Chrome, new Uri("https://www.google.com/"), true, @"C:\Selenium")
-                | Use((Context context) => context.Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30))
+                CreateContext(BrowserBrand.Chrome, new Uri("https://www.google.com/"), 30, true, @"C:\Selenium")
                 // Agree to Google terms if presented
                 | IfExists("iframe",
-                    (Context context) => context | Find("iframe") | SwitchToFrame | Find("div#introAgreeButton") | Click)
+                    (Context context) => context | SwitchToFrame("iframe") | Find("div#introAgreeButton") | Click | SwitchToDefault)
                 //
                 | SetText("input[name=q]", "OxygenFlow")
                 | Click("input[type=submit]")

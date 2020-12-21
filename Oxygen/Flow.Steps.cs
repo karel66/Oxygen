@@ -18,7 +18,6 @@ namespace Oxygen
         /// <summary>
         /// Run JavaScript.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static FlowStep Script(string script, params object[] args) =>
             (Context context) =>
             {
@@ -30,14 +29,13 @@ namespace Oxygen
                 }
                 catch (Exception x)
                 {
-                    return context.NewProblem($"{nameof(Script)}: exception: " + x.Message);
+                    return context.CreateProblem($"{nameof(Script)}: exception: " + x.Message);
                 }
             };
 
         /// <summary>
         /// Switches to iframe in context.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context SwitchToFrame(Context context)
         {
             O($"SwitchToFrame");
@@ -48,20 +46,19 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return context.NewProblem($"{nameof(Script)}: exception: " + x.Message);
+                return context.CreateProblem($"{nameof(Script)}: exception: " + x.Message);
             }
         }
 
         /// <summary>
         /// Locates and switches to the iframe.
         /// </summary>
-        public static FlowStep SwitchToFrame(string iframeSelector) => 
+        public static FlowStep SwitchToFrame(string iframeSelector) =>
                 (Context context) => context | Find(iframeSelector) | SwitchToFrame;
 
         /// <summary>
         /// Switches to main or first frame in context.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context SwitchToDefault(Context context)
         {
             O($"SwitchToDefault");
@@ -72,43 +69,42 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return context.NewProblem($"{nameof(Script)}: exception: " + x.Message);
+                return context.CreateProblem($"{nameof(Script)}: exception: " + x.Message);
             }
         }
 
         /// <summary>
         /// Executes the step only if the condition is true.
         /// </summary>
-        public static FlowStep If(bool condition, FlowStep step) => (Context context) =>
-            condition ? step(context) : context;
+        public static FlowStep If(bool condition, FlowStep step) =>
+            (Context context) => condition ? step(context) : context;
 
         /// <summary>
         /// Executes the step only if the condition returns true.
         /// </summary>
-        public static FlowStep If(Func<Context, bool> condition, FlowStep step) => (Context context) =>
-            condition(context) ? step(context) : context;
+        public static FlowStep If(Func<Context, bool> condition, FlowStep step) =>
+            (Context context) => condition(context) ? step(context) : context;
 
         /// <summary>
         /// Executes the step while the condition returns true.
         /// </summary>
-        public static FlowStep While(Func<Context, bool> condition, FlowStep step) => (Context context) =>
-        {
-            while (condition(context))
+        public static FlowStep While(Func<Context, bool> condition, FlowStep step) =>
+            (Context context) =>
             {
-                context = step(context);
-            }
+                while (condition(context))
+                {
+                    context = step(context);
+                }
 
-            return context;
-        };
+                return context;
+            };
 
 
         /// <summary>
         /// Retries until success or the given number of attempts has failed.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static bool TryUntilSuccess(Func<bool> success, int numberOfAttempts = 10)
         {
-
             if (success == null) throw new ArgumentNullException(nameof(success));
 
             int delay = 0;
@@ -145,7 +141,7 @@ namespace Oxygen
             {
                 if (context.HasProblem) return context;
 
-                if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
+                if (action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
 
                 return step(context).Use(action);
             };
@@ -154,13 +150,12 @@ namespace Oxygen
         /// <summary>
         /// Provides the step result element for action.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static FlowStep Use(FlowStep step, Action<RemoteWebElement> action) =>
             (Context context) =>
             {
                 if (context.HasProblem) return context;
 
-                if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
+                if (action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
 
                 try
                 {
@@ -175,7 +170,7 @@ namespace Oxygen
                 }
                 catch (Exception x)
                 {
-                    return context.NewProblem(x);
+                    return context.CreateProblem(x);
                 }
             };
 
@@ -187,7 +182,7 @@ namespace Oxygen
             {
                 if (context.HasProblem) return context;
 
-                if (action == null) return context.NewProblem($"{nameof(Use)}: NULL action argument.");
+                if (action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
 
                 return context.Use(action);
             };
@@ -195,13 +190,12 @@ namespace Oxygen
         /// <summary>
         /// Provides current context element for the action.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static FlowStep UseElement(Action<RemoteWebElement> action) =>
             (Context context) =>
             {
                 if (context.HasProblem) return context;
 
-                if (action == null) return context.NewProblem($"{nameof(UseElement)}: NULL action argument.");
+                if (action == null) return context.CreateProblem($"{nameof(UseElement)}: NULL action argument.");
 
                 try
                 {
@@ -209,7 +203,7 @@ namespace Oxygen
                 }
                 catch (Exception x)
                 {
-                    return context.NewProblem(x);
+                    return context.CreateProblem(x);
                 }
 
                 return context;
@@ -218,9 +212,9 @@ namespace Oxygen
         static FlowStep CollectionFilter(Func<ReadOnlyCollection<IWebElement>, IWebElement> filter) =>
             (Context context) =>
             {
-                if (filter == null) return context.NewProblem($"{nameof(CollectionFilter)}: NULL filter");
-                if (context.Collection == null) return context.NewProblem($"{nameof(CollectionFilter)}: missing collection");
-                if (context.Collection.Count == 0) return context.NewProblem($"{nameof(CollectionFilter)}: empty collection");
+                if (filter == null) return context.CreateProblem($"{nameof(CollectionFilter)}: NULL filter");
+                if (context.Collection == null) return context.CreateProblem($"{nameof(CollectionFilter)}: missing collection");
+                if (context.Collection.Count == 0) return context.CreateProblem($"{nameof(CollectionFilter)}: empty collection");
 
                 IWebElement child = null;
 
@@ -230,10 +224,10 @@ namespace Oxygen
                     return child != null;
                 }))
                 {
-                    return context.NewProblem($"{nameof(CollectionFilter): failed}");
+                    return context.CreateProblem($"{nameof(CollectionFilter): failed}");
                 }
 
-                return context.NewContext(child as RemoteWebElement);
+                return context.NextContext(child as RemoteWebElement);
             };
 
         /// <summary>
@@ -265,16 +259,20 @@ namespace Oxygen
         /// <summary>
         /// Mouse click on the context Element
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context Click(Context context)
         {
             var msg = O($"{nameof(Click)}");
+
+            if (context == null)
+            {
+                return context.CreateProblem(LogError($"{nameof(Click)}: NULL context", null));
+            }
 
             var c = context.Element;
 
             if (c == null)
             {
-                return context.NewProblem(LogError($"{nameof(Click)}: missing context Element!", null));
+                return context.CreateProblem(LogError($"{nameof(Click)}: NULL element!", null));
             }
 
             try
@@ -286,38 +284,41 @@ namespace Oxygen
                 O($"{nameof(Click)}: moveToElement failed: " + x.Message);
             }
 
-            if (!TryUntilSuccess(() =>
-            {
-                if (c.TagName == "li")
+            if (TryUntilSuccess(() =>
                 {
-                    new Actions(context.Driver).Click(c).Perform();
-                }
-                else
-                {
-                    c.Click();
-                }
+                    if (c.TagName == "li")
+                    {
+                        new Actions(context.Driver).Click(c).Perform();
+                    }
+                    else
+                    {
+                        c.Click();
+                    }
 
-                return true;
-            }))
+                    return true;
+                }))
             {
-                return context.NewProblem($"{nameof(Click)}: failed");
+                return context;
             }
-
-            return context;
+            else
+            {
+                return context.CreateProblem($"{nameof(Click)}: failed");
+            }
         }
 
         /// <summary>
         /// Mouse click on page element retuned by given flow step
         /// </summary>
 
-        public static FlowStep Click(FlowStep step) => (Context context) => step(context) | Click;
+        public static FlowStep Click(FlowStep step) =>
+            (Context context) => step(context) | Click;
 
         /// <summary>
         /// Mouse click on page element returned by CSS selector
         /// </summary>
-        public static FlowStep Click(string selector) => (Context context) => context | Find(selector) | Click;
+        public static FlowStep Click(string selector) =>
+            (Context context) => context | Find(selector) | Click;
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context DblClick(Context context)
         {
             var msg = O("DblClick");
@@ -334,75 +335,79 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return context.NewProblem(LogError(msg, x));
+                return context.CreateProblem(LogError(msg, x));
             }
         }
 
-        public static FlowStep DblClick(string selector) => (Context context) => context | Find(selector) | DblClick;
+        public static FlowStep DblClick(string selector) =>
+            (Context context) => context | Find(selector) | DblClick;
 
         /// <summary>
         /// Sets text box, text area and combo text on page
         /// </summary>
-        public static FlowStep SetText(string cssSelector, string text) => (Context context) => context | Find(cssSelector) | SetText(text);
+        public static FlowStep SetText(string cssSelector, string text) =>
+            (Context context) => context | Find(cssSelector) | SetText(text);
 
         /// <summary>
         /// Sets current context element text if text box, text area or dropdown list.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        public static FlowStep SetText(string text) => (Context context) =>
-          {
-              var msg = O($"{nameof(SetText)} '{text}'");
+        public static FlowStep SetText(string text) =>
+            (Context context) =>
+            {
+                var msg = O($"{nameof(SetText)} '{text}'");
 
-              if (context.Element == null)
-              {
-                  return context.NewProblem($"{nameof(SetText)}: missing context Element");
-              }
+                if (context.Element == null)
+                {
+                    return context.CreateProblem($"{nameof(SetText)}: missing context Element");
+                }
 
-              var element = context.Element;
+                var element = context.Element;
 
-              TryUntilSuccess(() => element.Displayed);
+                TryUntilSuccess(() => element.Displayed);
 
-              try
-              {
-                  if (element.TagName == "input")
-                  {
-                      if (!string.IsNullOrEmpty(element.GetAttribute("value")))
-                      {
-                          element.SendKeys(" ");
-                          element.Clear();
-                      }
-                      element.SendKeys(text);
-                  }
-                  else if (element.TagName == "textarea")
-                  {
-                      element.Clear();
-                      element.SendKeys(text);
-                  }
-                  else if (element.TagName == "select")
-                  {
-                      return Select(context.NewContext(element), text);
-                  }
-                  else
-                  {
-                      return context.NewProblem($"{nameof(SetText)}: unexpected tag <{element.TagName}>");
-                  }
-              }
-              catch (Exception x)
-              {
-                  return context.NewProblem(LogError(msg, x));
-              }
+                try
+                {
+                    if (element.TagName == "input")
+                    {
+                        if (!string.IsNullOrEmpty(element.GetAttribute("value")))
+                        {
+                            element.SendKeys(" ");
+                            element.Clear();
+                        }
+                        element.SendKeys(text);
+                    }
+                    else if (element.TagName == "textarea")
+                    {
+                        element.Clear();
+                        element.SendKeys(text);
+                    }
+                    else if (element.TagName == "select")
+                    {
+                        return Select(context.NextContext(element), text);
+                    }
+                    else
+                    {
+                        return context.CreateProblem($"{nameof(SetText)}: unexpected tag <{element.TagName}>");
+                    }
+                }
+                catch (Exception x)
+                {
+                    return context.CreateProblem(LogError(msg, x));
+                }
 
-              return context;
-          };
+                return context;
+            };
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        /// <summary>
+        /// Send enter key to the context element
+        /// </summary>
         public static Context PressEnter(Context context)
         {
             var c = context.Element;
 
             if (c == null)
             {
-                return context.NewProblem("PressEnter: Missing context element");
+                return context.CreateProblem("PressEnter: Missing context element");
             }
 
             var msg = O($"PressEnter: <{c.TagName}>{c.Text}</{c.TagName}>");
@@ -413,23 +418,22 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return context.NewProblem(LogError(msg, x));
+                return context.CreateProblem(LogError(msg, x));
             }
 
             return context;
         }
 
         /// <summary>
-        /// Select display text in combobox
+        /// Select display text in the combobox context element
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public static Context Select(Context context, string value)
         {
             var c = context.Element;
 
             if (c == null)
             {
-                return context.NewProblem($"{nameof(Select)}: Missing context element");
+                return context.CreateProblem($"{nameof(Select)}: Missing context element");
             }
 
             var msg = O($"{nameof(Select)}: {value}");
@@ -442,18 +446,18 @@ namespace Oxygen
 
                     if (item == null)
                     {
-                        return context.NewProblem($"Can't find combo text '{value}'");
+                        return context.CreateProblem($"Can't find combo text '{value}'");
                     }
 
                     item.Click();
                 }
 
-                return context.NewContext(c);
+                return context.NextContext(c);
             }
 
             catch (Exception x)
             {
-                return context.NewProblem(LogError(msg, x));
+                return context.CreateProblem(LogError(msg, x));
             }
 
         }
@@ -472,30 +476,31 @@ namespace Oxygen
 
                 if (context.Title != targetTitle)
                 {
-                    return context.NewProblem($"Expected title '{targetTitle}', actual '{context.Title}'");
+                    return context.CreateProblem($"Expected title '{targetTitle}', actual '{context.Title}'");
                 }
 
                 return context;
             };
 
-        public static FlowStep AssertAttributeValue(string attributeName, string expected) => (Context context) =>
-        {
-            if (!context.HasElement)
+        public static FlowStep AssertAttributeValue(string attributeName, string expected) =>
+            (Context context) =>
             {
-                return context.NewProblem($"AssertAttributeValue {attributeName}='{expected}': Missing context element.");
-            }
+                if (!context.HasElement)
+                {
+                    return context.CreateProblem($"AssertAttributeValue {attributeName}='{expected}': Missing context element.");
+                }
 
-            var actual = context.Element.GetAttribute(attributeName);
+                var actual = context.Element.GetAttribute(attributeName);
 
-            return actual == expected ?
-                context : context.NewProblem($"Expected {attributeName}='{expected}', actual {attributeName}='{actual}'");
-        };
+                return actual == expected ?
+                    context : context.CreateProblem($"Expected {attributeName}='{expected}', actual {attributeName}='{actual}'");
+            };
 
         public static FlowStep Assertion(Predicate<Context> predicate, string errorMessage) =>
-            (Context context) => predicate(context) ? context : context.NewProblem(errorMessage);
+            (Context context) => predicate(context) ? context : context.CreateProblem(errorMessage);
 
         public static FlowStep Assertion(Predicate<Context> predicate, Func<Context, string> errorMessage) =>
-            (Context context) => predicate(context) ? context : context.NewProblem(errorMessage(context));
+            (Context context) => predicate(context) ? context : context.CreateProblem(errorMessage(context));
 
     }
 }

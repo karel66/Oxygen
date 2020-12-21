@@ -15,7 +15,7 @@ using OpenQA.Selenium.Remote;
 namespace Oxygen
 {
     /// <summary>
-    /// Base class for tests.
+    /// Base class for Selenium UI tests.
     /// </summary>
     public partial class Flow
     {
@@ -23,13 +23,13 @@ namespace Oxygen
         /// Instantiates selected browser.
         /// </summary>
         /// <param name="browserBrand">Browser brand to instantiate.</param>
-        /// <param name="startPageUrl">Satrt page URL.</param>
+        /// <param name="startPageUrl">Start page URL.</param
+        /// <param name="implicitWait">Selenium driver implicit wait duration, in seconds.</param>
         /// <param name="killOthers">Optional. If true then other browser instances are closed.</param>
         /// <param name="driverDirectory">Optional driver directory. If not spcefied then environment PATH is used.</param>
         /// <param name="options">Specific driver options. Must match the browser brand options type.</param>
         /// <returns>Driver in context</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-        public static Context CreateContext(BrowserBrand browserBrand, Uri startPageUrl, bool killOthers = false, string driverDirectory = null, DriverOptions options = null)
+        public static Context CreateContext(BrowserBrand browserBrand, Uri startPageUrl, int implicitWait = 10, bool killOthers = false, string driverDirectory = null, DriverOptions options = null)
         {
             if (startPageUrl == null) throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}");
 
@@ -114,6 +114,8 @@ namespace Oxygen
 
                 driver.Url = startPageUrl.ToString();
 
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(implicitWait);
+
                 return new Context(driver, null, null);
             }
             catch (Exception x)
@@ -122,7 +124,18 @@ namespace Oxygen
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        /// <summary>
+        /// Final step in a flow.
+        /// </summary>
+        public static Context CloseContext(Context context)
+        {
+            if (context != null && context.Driver != null)
+            {
+                context.Driver.Close();
+            }
+            return context;
+        }
+
         static void KillBrowserProcesses(params string[] processNames)
         {
             foreach (var pname in processNames)
