@@ -1,5 +1,6 @@
 ﻿/*
-Oxygen Flow library
+ * Oxygen.Flow library
+ * by karel66, 2020
 */
 
 using System;
@@ -76,7 +77,6 @@ namespace Oxygen
         /// </summary>
         internal Context NextContext(RemoteWebElement element) => new Context(this.Driver, element, this.Collection);
 
-
         /// <summary>
         /// Set context Element from generator
         /// </summary>
@@ -142,7 +142,7 @@ namespace Oxygen
 
             try
             {
-                return step(this);
+                return step.Invoke(this);
             }
             catch (Exception x)
             {
@@ -162,7 +162,7 @@ namespace Oxygen
 
             try
             {
-                action(this);
+                action.Invoke(this);
                 return this;
             }
             catch (Exception x)
@@ -171,11 +171,9 @@ namespace Oxygen
             }
         }
 
-        public override string ToString() =>
-          HasProblem ? Problem.ToString() : Driver != null ? Driver.ToString() : "Uninitialized Context";
+        public override string ToString() => HasProblem ? Problem.ToString() : Driver != null ? Driver.ToString() : "Uninitialized Context";
 
         public static implicit operator string(Context c) => c.ToString();
-
 
         /// <summary>
         /// Overloaded | operator for Context.Bind(FlowStep)

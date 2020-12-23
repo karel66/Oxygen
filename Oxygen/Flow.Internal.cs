@@ -1,5 +1,6 @@
 ﻿/*
-Oxygen Flow library
+ * Oxygen.Flow library
+ * by karel66, 2020
 */
 
 using System;
@@ -11,9 +12,11 @@ using OpenQA.Selenium.Remote;
 
 namespace Oxygen
 {
+    /// <summary>
+    /// Internal methods
+    /// </summary>
     public partial class Flow
     {
-
         static FlowStep ElementByCss(IFindsByCssSelector parent, string cssSelector, int index = 0) => (Context context) =>
         {
             O($"Element: {cssSelector} [{index}]");

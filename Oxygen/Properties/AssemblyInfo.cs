@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Oxygen")]
-[assembly: AssemblyDescription("Oxygen Flow Library")]
+[assembly: AssemblyTitle("Oxygen.Flow")]
+[assembly: AssemblyDescription("Oxygen.Flow: functional Selenium wrapper library")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Oxygen")]
-[assembly: AssemblyCopyright("Copyright © Karel Rimm 2020")]
+[assembly: AssemblyProduct("Oxygen.Flow")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

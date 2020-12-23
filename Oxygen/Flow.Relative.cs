@@ -1,5 +1,6 @@
 ﻿/*
-Oxygen Flow library
+ * Oxygen.Flow library
+ * by karel66, 2020
 */
 
 namespace Oxygen
@@ -7,7 +8,7 @@ namespace Oxygen
     public partial class Flow
     {
         /// <summary>
-        /// Realtice searches (current element context).
+        /// Relative searches (current element context).
         /// </summary>
         protected static class Relative
         {

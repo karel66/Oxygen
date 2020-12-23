@@ -1,6 +1,7 @@
-﻿/*
-Oxygen Flow library
-*/
+﻿/* 
+ * Oxygen.Flow library
+ * by karel66, 2020
+ */
 
 using System;
 using System.Collections.ObjectModel;
@@ -13,6 +14,9 @@ using OpenQA.Selenium.Remote;
 
 namespace Oxygen
 {
+    /// <summary>
+    /// Common UI testing steps
+    /// </summary>
     public partial class Flow
     {
         /// <summary>
