@@ -45,3 +45,5 @@ Trace produced by the test above:
 22:19:11 Click: moveToElement failed: javascript error: Failed to execute 'elementsFromPoint' on 'Document': The provided double value is non-finite.
   (Session info: chrome=86.0.4240.193)
 ```
+
+More in the Wiki https://github.com/karel66/OxygenFlow/wiki
