@@ -4,9 +4,10 @@
 
 /.vs
 /Oxygen/.vs/Oxygen/v16
-/Oxygen/bin/Debug
+/Oxygen/bin
 /Oxygen/obj
 /Oxygen/Oxygen.csproj.vspscc
 /Oxygen/packages
+/Oxygen/TestReults
 /UnitTests/bin/Debug
 /UnitTests/obj/Debug
