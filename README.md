@@ -14,36 +14,51 @@ using Oxygen;
 [TestClass]
 public class Demo : Oxygen.Flow
 {
+    /// <summary>
+    /// Run Google search. Chrome browser must be present and matching webdriver in C:\Selenium folder.
+    /// </summary>
     [TestMethod]
     public void SearchTestChrome()
     {
+        const string googleUrl = "https://www.google.com/";
+        const string googleSearchBox = "input[name=q]";
+        const string googleSearchButton = "input[type=submit]";
+
         var result =
-            CreateContext(BrowserBrand.Chrome, new Uri("https://www.google.com/"), 30, true, @"C:\Selenium")
-            // Agree to Google terms if presented
-            | IfExists("iframe",
-                (Context context) => context | SwitchToFrame("iframe") | Find("div#introAgreeButton") | Click | SwitchToDefault)
-            
-            | SetText("input[name=q]", "OxygenFlow")
-            | Click("input[type=submit]");
-            
+            CreateContext(BrowserBrand.Chrome, new Uri(googleUrl), 30, true, @"C:\Selenium")
+            | AcceptGoogleTerms
+            | Find(googleSearchBox)
+            | SetText("OxygenFlow")
+            | Click(googleSearchButton);
+
         Assert.IsFalse(result.HasProblem, result);
     }
+
+    /// <summary>
+    /// Agree to Google terms if presented in iframe
+    /// </summary>
+    static Context AcceptGoogleTerms(Context context) =>
+        IfExists("iframe", _ => _ 
+            | SwitchToFrame("iframe") 
+            | Click("div#introAgreeButton") 
+            | SwitchToDefault)            
+        (context);
 }
 ```
 Trace produced by the test above:
 ```
-22:19:10 Exists: iframe : True
-22:19:10 Element: iframe [0]
-22:19:10 SwitchToFrame
-22:19:11 Element: div#introAgreeButton [0]
-22:19:11 Click
-22:19:11 SwitchToDefault
-22:19:11 Element: input[name=q] [0]
-22:19:11 SetText 'OxygenFlow'
-22:19:11 Element: input[type=submit] [0]
-22:19:11 Click
-22:19:11 Click: moveToElement failed: javascript error: Failed to execute 'elementsFromPoint' on 'Document': The provided double value is non-finite.
-  (Session info: chrome=86.0.4240.193)
+20:13:18 Exists: iframe : True
+20:13:18 Element: iframe [0]
+20:13:18 SwitchToFrame
+20:13:18 Element: div#introAgreeButton [0]
+20:13:18 Click
+20:13:18 SwitchToDefault
+20:13:18 Element: input[name=q] [0]
+20:13:18 SetText 'OxygenFlow'
+20:13:19 Element: input[type=submit] [0]
+20:13:19 Click
+20:13:19 Click: moveToElement failed: javascript error: Failed to execute 'elementsFromPoint' on 'Document': The provided double value is non-finite.
+  (Session info: chrome=87.0.4280.141)
 ```
 
 More in the Wiki https://github.com/karel66/OxygenFlow/wiki
