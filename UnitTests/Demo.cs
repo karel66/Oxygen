@@ -22,21 +22,35 @@ namespace UnitTests
             Assert.IsFalse(result.HasProblem, result);
         }
 
+
+        /// <summary>
+        /// Run Google search. Chrome browser must be present and matching webdriver in C:\Selenium folder
+        /// </summary>
         [TestMethod]
         public void SearchTestChrome()
         {
-            var result =
-                CreateContext(BrowserBrand.Chrome, new Uri("https://www.google.com/"), 30, true, @"C:\Selenium")
-                // Agree to Google terms if presented
-                | IfExists("iframe",
-                    (Context context) => context | SwitchToFrame("iframe") | Find("div#introAgreeButton") | Click | SwitchToDefault)
-                //
-                | SetText("input[name=q]", "OxygenFlow")
-                | Click("input[type=submit]")
-                ;
+            const string googleUrl = "https://www.google.com/";
+            const string googleSearchBox = "input[name=q]";
+            const string googleSearchButton = "input[type=submit]";
 
+            var result =
+                CreateContext(BrowserBrand.Chrome, new Uri(googleUrl), 30, true, @"C:\Selenium")
+                | AcceptGoogleTerms
+                | Find(googleSearchBox)
+                | SetText("OxygenFlow")
+                | Click(googleSearchButton);
 
             Assert.IsFalse(result.HasProblem, result);
         }
+
+        /// <summary>
+        /// Agree to Google terms if presented in iframe
+        /// </summary>
+        static Context AcceptGoogleTerms(Context context) =>
+            IfExists("iframe", _ => _ 
+                | SwitchToFrame("iframe") 
+                | Click("div#introAgreeButton") 
+                | SwitchToDefault)            
+            (context);
     }
 }
