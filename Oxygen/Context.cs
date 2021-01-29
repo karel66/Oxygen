@@ -142,6 +142,8 @@ namespace Oxygen
 
             try
             {
+                Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} {ExtractMethodName(step.Method.Name)} {FormatTarget(step.Target)}");
+
                 return step.Invoke(this);
             }
             catch (Exception x)
@@ -150,6 +152,58 @@ namespace Oxygen
             }
         }
 
+        static string FormatTarget(object target)
+        {
+            string args = null;
+
+            if (target != null)
+            {
+                var type = target.GetType();
+
+                foreach (var field in type.GetFields())
+                {
+
+                    var argval = type.InvokeMember(field.Name, System.Reflection.BindingFlags.GetField, null, target, null, null);
+
+                    if (args != null) args += ", ";
+
+                    if (field.FieldType.Name == "String")
+                    {
+                        args += $"\"{argval}\"";
+                    }
+                    else if (field.FieldType.Name == "Char")
+                    {
+                        args += $"'{argval}'";
+                    }
+                    else if (field.FieldType.BaseType.Name == "MulticastDelegate")
+                    {
+                        var deleg = argval as MulticastDelegate;
+                        var method = deleg.Method;
+
+                        args += $"{field.Name}=>{method.DeclaringType.FullName}.{ExtractMethodName(method.Name)}";
+                        if (deleg.Target != null)
+                        {
+                            args += $"({FormatTarget(deleg.Target)})";
+                        }
+                    }
+                    else
+                    {
+                        args += $"{argval}";
+                    }
+                }
+            }
+            return args;
+        }
+
+        static string ExtractMethodName(string reflectedName)
+        {
+            string name = reflectedName;
+            if (name[0] == '<')
+            {
+                name = name.Substring(1, name.IndexOf('>') - 1);
+            }
+            return name;
+        }
 
         /// <summary>
         /// Action bind.

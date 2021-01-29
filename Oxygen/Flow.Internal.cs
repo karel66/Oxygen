@@ -19,8 +19,6 @@ namespace Oxygen
     {
         static FlowStep ElementByCss(IFindsByCssSelector parent, string cssSelector, int index = 0) => (Context context) =>
         {
-            O($"Element: {cssSelector} [{index}]");
-
             RemoteWebElement child = null;
 
             if (!TryUntilSuccess(() =>
@@ -41,8 +39,6 @@ namespace Oxygen
 
         static FlowStep CollectionByCss(IFindsByCssSelector parent, string cssSelector) => (Context context) =>
         {
-            O($"Collection: {cssSelector}");
-
             ReadOnlyCollection<IWebElement> result = null;
 
             if (!TryUntilSuccess(() =>
@@ -65,9 +61,6 @@ namespace Oxygen
             try
             {
                 var result = find(filter) as RemoteWebElement;
-
-                O($"Exists: {filter} : {result != null}");
-
                 return result != null;
             }
             catch (NoSuchElementException)
@@ -79,7 +72,6 @@ namespace Oxygen
 
         static FlowStep ElementByXPath(IFindsByXPath parent, string xpath, int index = 0) => (Context context) =>
         {
-            O($"{nameof(ElementByXPath)}: {xpath} [{index}]");
             RemoteWebElement child = null;
 
             if (!TryUntilSuccess(() =>
@@ -100,8 +92,6 @@ namespace Oxygen
 
         static FlowStep CollectionByXPath(IFindsByXPath parent, string xpath) => (Context context) =>
         {
-            O($"CollectionByXPath: {xpath}");
-
             ReadOnlyCollection<IWebElement> result = null;
 
             if (!TryUntilSuccess(() =>

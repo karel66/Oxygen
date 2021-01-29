@@ -25,7 +25,6 @@ namespace Oxygen
         public static FlowStep Script(string script, params object[] args) =>
             (Context context) =>
             {
-                O($"{nameof(Script)}: {script}");
                 try
                 {
                     ((IJavaScriptExecutor)context.Driver).ExecuteScript(script, args);
@@ -42,7 +41,6 @@ namespace Oxygen
         /// </summary>
         public static Context SwitchToFrame(Context context)
         {
-            O($"SwitchToFrame");
             try
             {
                 context.Driver.SwitchTo().Frame(context.Element);
@@ -65,7 +63,6 @@ namespace Oxygen
         /// </summary>
         public static Context SwitchToDefault(Context context)
         {
-            O($"SwitchToDefault");
             try
             {
                 context.Driver.SwitchTo().DefaultContent();
@@ -124,7 +121,7 @@ namespace Oxygen
                 }
                 catch (Exception x)
                 {
-                    O(x.Message);
+                    LogError(x.Message);
                 }
 
                 O($"RETRY [{i}]");
@@ -239,34 +236,24 @@ namespace Oxygen
         /// </summary>
         public static FlowStep FirstContainingText(string text) =>
             (Context context) =>
-            {
-                var msg = O($"{nameof(FirstContainingText)}: '{text}'");
-
-                return
                     CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
                         .FirstOrDefault())(context);
-            };
+
 
         /// <summary>
         /// Returns element from context Collection
         /// </summary>
         public static FlowStep LastContainingText(string text) =>
             (Context context) =>
-            {
-                var msg = O($"{nameof(LastContainingText)}: '{text}'");
-
-                return
                     CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
                         .LastOrDefault())(context);
-            };
+
 
         /// <summary>
         /// Mouse click on the context Element
         /// </summary>
         public static Context Click(Context context)
         {
-            var msg = O($"{nameof(Click)}");
-
             if (context == null)
             {
                 return context.CreateProblem(LogError($"{nameof(Click)}: NULL context", null));
@@ -285,7 +272,7 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                O($"{nameof(Click)}: moveToElement failed: " + x.Message);
+                LogError(x.Message);
             }
 
             if (TryUntilSuccess(() =>
@@ -325,8 +312,6 @@ namespace Oxygen
 
         public static Context DblClick(Context context)
         {
-            var msg = O("DblClick");
-
             Click(context);
 
             try
@@ -339,7 +324,7 @@ namespace Oxygen
             }
             catch (Exception x)
             {
-                return context.CreateProblem(LogError(msg, x));
+                return context.CreateProblem(x);
             }
         }
 
@@ -358,8 +343,6 @@ namespace Oxygen
         public static FlowStep SetText(string text) =>
             (Context context) =>
             {
-                var msg = O($"{nameof(SetText)} '{text}'");
-
                 if (context.Element == null)
                 {
                     return context.CreateProblem($"{nameof(SetText)}: missing context Element");
@@ -396,7 +379,7 @@ namespace Oxygen
                 }
                 catch (Exception x)
                 {
-                    return context.CreateProblem(LogError(msg, x));
+                    return context.CreateProblem(x);
                 }
 
                 return context;
@@ -414,15 +397,13 @@ namespace Oxygen
                 return context.CreateProblem("PressEnter: Missing context element");
             }
 
-            var msg = O($"PressEnter: <{c.TagName}>{c.Text}</{c.TagName}>");
-
             try
             {
                 new Actions(context.Driver).SendKeys(c, Keys.Enter).Perform();
             }
             catch (Exception x)
             {
-                return context.CreateProblem(LogError(msg, x));
+                return context.CreateProblem(x);
             }
 
             return context;
@@ -439,8 +420,6 @@ namespace Oxygen
             {
                 return context.CreateProblem($"{nameof(Select)}: Missing context element");
             }
-
-            var msg = O($"{nameof(Select)}: {value}");
 
             try
             {
@@ -461,7 +440,7 @@ namespace Oxygen
 
             catch (Exception x)
             {
-                return context.CreateProblem(LogError(msg, x));
+                return context.CreateProblem(x);
             }
 
         }
