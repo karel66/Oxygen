@@ -47,18 +47,22 @@ public class Demo : Oxygen.Flow
 ```
 Trace produced by the test above:
 ```
-20:13:18 Exists: iframe : True
-20:13:18 Element: iframe [0]
-20:13:18 SwitchToFrame
-20:13:18 Element: div#introAgreeButton [0]
-20:13:18 Click
-20:13:18 SwitchToDefault
-20:13:18 Element: input[name=q] [0]
-20:13:18 SetText 'OxygenFlow'
-20:13:19 Element: input[type=submit] [0]
-20:13:19 Click
-20:13:19 Click: moveToElement failed: javascript error: Failed to execute 'elementsFromPoint' on 'Document': The provided double value is non-finite.
-  (Session info: chrome=87.0.4280.141)
-```
+21:59:54 AcceptGoogleTerms 
+21:59:54 SwitchToFrame "iframe"
+21:59:54 Find "iframe", 0
+21:59:54 SwitchToFrame 
+21:59:54 Click "div#introAgreeButton"
+21:59:54 Find "div#introAgreeButton", 0
+21:59:54 Click 
+21:59:54 SwitchToDefault 
+21:59:54 Find "input[name=q]", 0
+21:59:54 SetText "OxygenFlow"
+21:59:55 Click "input[type=submit]"
+21:59:55 Find "input[type=submit]", 0
+21:59:55 Click 
+21:59:55 *************************************************************************
+21:59:55 FAILED javascript error: Failed to execute 'elementsFromPoint' on 'Document': The provided double value is non-finite.
+  (Session info: chrome=88.0.4324.104)
+21:59:55 *************************************************************************```
 
 More in the Wiki https://github.com/karel66/OxygenFlow/wiki
