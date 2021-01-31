@@ -36,6 +36,7 @@ namespace Oxygen
         /// </summary>
         public object Problem { get; private set; }
 
+        static string TaceIndent = "";
         /// <summary>
         /// Generic constructor
         /// </summary>
@@ -125,7 +126,7 @@ namespace Oxygen
         {
             if (problem == null) problem = "Null passed as problem!";
 
-            System.Diagnostics.Trace.TraceError(problem.ToString());
+            Console.WriteLine(problem.ToString());
 
             return new Context(this.Driver, this.Element, this.Collection, problem);
         }
@@ -140,15 +141,21 @@ namespace Oxygen
 
             if (step == null) return CreateProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
 
+            var signature = $"{ExtractMethodName(step.Method.Name)} {FormatTarget(step.Target)}";
             try
             {
-                Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)} {ExtractMethodName(step.Method.Name)} {FormatTarget(step.Target)}");
+                Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)} {TaceIndent}{signature}");
+                TaceIndent += '\t';
 
                 return step.Invoke(this);
             }
             catch (Exception x)
             {
                 return CreateProblem(x);
+            }
+            finally
+            {
+                if (TaceIndent.Length > 0) { TaceIndent = TaceIndent.Remove(TaceIndent.Length - 1, 1); }
             }
         }
 
@@ -162,7 +169,6 @@ namespace Oxygen
 
                 foreach (var field in type.GetFields())
                 {
-
                     var argval = type.InvokeMember(field.Name, System.Reflection.BindingFlags.GetField, null, target, null, null);
 
                     if (args != null) args += ", ";
@@ -180,8 +186,8 @@ namespace Oxygen
                         var deleg = argval as MulticastDelegate;
                         var method = deleg.Method;
 
-                        args += $"{field.Name}=>{method.DeclaringType.FullName}.{ExtractMethodName(method.Name)}";
-                        if (deleg.Target != null)
+                        args += $"{field.Name}=>{method.DeclaringType.Name}.{ExtractMethodName(method.Name)}";
+                        if (deleg.Target != target)
                         {
                             args += $"({FormatTarget(deleg.Target)})";
                         }

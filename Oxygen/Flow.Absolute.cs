@@ -45,6 +45,6 @@ namespace Oxygen
         /// Executes the step if element by the selector is found
         /// </summary>
         public static FlowStep IfExists(string selector, FlowStep step) =>
-                (Context context) => ExistsByCss(context.Driver, selector) ? step(context) : context;
+                (Context context) => ExistsByCss(context.Driver, selector) ? context.Bind(step) : context;
     }
 }

@@ -65,7 +65,7 @@ namespace Oxygen
             }
             catch (NoSuchElementException)
             {
-                O($"Exists: {filter} : NO");
+                Log($"Exists: {filter} : NO");
                 return false;
             }
         }

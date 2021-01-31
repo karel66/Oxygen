@@ -124,7 +124,7 @@ namespace Oxygen
                     LogError(x.Message);
                 }
 
-                O($"RETRY [{i}]");
+                Log($"RETRY [{i}]");
 
                 delay += 200;
 
@@ -302,13 +302,16 @@ namespace Oxygen
         /// </summary>
 
         public static FlowStep Click(FlowStep step) =>
-            (Context context) => step(context) | Click;
+            (Context context) => context | step | Click;
 
         /// <summary>
         /// Mouse click on page element returned by CSS selector
         /// </summary>
         public static FlowStep Click(string selector) =>
-            (Context context) => context | Find(selector) | Click;
+            (Context context) => 
+                context 
+                | Find(selector) 
+                | Click;
 
         public static Context DblClick(Context context)
         {
