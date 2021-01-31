@@ -173,7 +173,11 @@ namespace Oxygen
 
                     if (args != null) args += ", ";
 
-                    if (field.FieldType.Name == "String")
+                    if(argval == null)
+                    {
+                        args += $"NULL({field.Name})";
+                    }
+                    else if (field.FieldType.Name == "String")
                     {
                         args += $"\"{argval}\"";
                     }
