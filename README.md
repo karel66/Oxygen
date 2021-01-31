@@ -47,22 +47,23 @@ public class Demo : Oxygen.Flow
 ```
 Trace produced by the test above:
 ```
-21:59:54 AcceptGoogleTerms 
-21:59:54 SwitchToFrame "iframe"
-21:59:54 Find "iframe", 0
-21:59:54 SwitchToFrame 
-21:59:54 Click "div#introAgreeButton"
-21:59:54 Find "div#introAgreeButton", 0
-21:59:54 Click 
-21:59:54 SwitchToDefault 
-21:59:54 Find "input[name=q]", 0
-21:59:54 SetText "OxygenFlow"
-21:59:55 Click "input[type=submit]"
-21:59:55 Find "input[type=submit]", 0
-21:59:55 Click 
-21:59:55 *************************************************************************
-21:59:55 FAILED javascript error: Failed to execute 'elementsFromPoint' on 'Document': The provided double value is non-finite.
+18:26:57.089 AcceptGoogleTerms 
+18:26:57.090 	IfExists "iframe", step=><>c.AcceptGoogleTerms(UnitTests.Demo+<>c, <>9__2_0=><>c.AcceptGoogleTerms)
+18:26:57.107 		AcceptGoogleTerms UnitTests.Demo+<>c, <>9__2_0=><>c.AcceptGoogleTerms
+18:26:57.107 			SwitchToFrame "iframe"
+18:26:57.108 				Find "iframe", 0
+18:26:57.121 				SwitchToFrame 
+18:26:57.145 			Click "div#introAgreeButton"
+18:26:57.145 				Find "div#introAgreeButton", 0
+18:26:57.159 				Click 
+18:26:57.841 			SwitchToDefault 
+18:26:57.843 Find "input[name=q]", 0
+18:26:57.862 SetText "OxygenFlow"
+18:26:57.990 Click "input[type=submit]"
+18:26:57.990 	Find "input[type=submit]", 0
+18:26:58.002 	Click 
+18:26:58.024 *** ERROR *** javascript error: Failed to execute 'elementsFromPoint' on 'Document': The provided double value is non-finite.
   (Session info: chrome=88.0.4324.104)
-21:59:55 *************************************************************************```
+```
 
 More in the Wiki https://github.com/karel66/OxygenFlow/wiki
