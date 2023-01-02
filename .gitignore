@@ -2,12 +2,13 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs
+**/.vs
+**/*.plog
 /Oxygen/.vs/Oxygen/v16
 /Oxygen/bin
 /Oxygen/obj
 /Oxygen/Oxygen.csproj.vspscc
 /Oxygen/packages
 /Oxygen/TestReults
-/UnitTests/bin/Debug
-/UnitTests/obj/Debug
+**/UnitTests/bin
+**/UnitTests/obj
