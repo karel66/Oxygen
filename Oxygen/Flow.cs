@@ -11,7 +11,6 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Edge;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.IE;
-using OpenQA.Selenium.Remote;
 
 namespace Oxygen
 {
@@ -30,11 +29,11 @@ namespace Oxygen
         /// <param name="driverDirectory">Optional driver directory. If not spcefied then environment PATH is used.</param>
         /// <param name="options">Specific driver options. Must match the browser brand options type.</param>
         /// <returns>Driver in context</returns>
-        public static Context CreateContext(BrowserBrand browserBrand, Uri startPageUrl, int implicitWait = 10, bool killOthers = false, string driverDirectory = null, DriverOptions options = null)
+        public static Context CreateContext(BrowserBrand browserBrand, Uri startPageUrl, double implicitWait = 1.0, bool killOthers = false, string driverDirectory = null, DriverOptions options = null)
         {
             if (startPageUrl == null) throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}");
 
-            RemoteWebDriver driver = null;
+            WebDriver driver = null;
 
             try
             {
@@ -65,7 +64,9 @@ namespace Oxygen
                             {
                                 options = new EdgeOptions
                                 {
-                                    PageLoadStrategy = PageLoadStrategy.Normal
+                                    PageLoadStrategy = PageLoadStrategy.Normal,
+                                    UnhandledPromptBehavior = UnhandledPromptBehavior.Accept
+
                                 };
                             }
                             driver = driverDirectory != null ? new EdgeDriver(driverDirectory, (EdgeOptions)options) : new EdgeDriver((EdgeOptions)options);
@@ -82,8 +83,7 @@ namespace Oxygen
                                 options = new FirefoxOptions
                                 {
                                     PageLoadStrategy = PageLoadStrategy.Normal,
-                                    AcceptInsecureCertificates = true,
-                                    UseLegacyImplementation = false
+                                    AcceptInsecureCertificates = true
                                 };
                             }
                             driver = driverDirectory != null ? new FirefoxDriver(driverDirectory, (FirefoxOptions)options) : new FirefoxDriver((FirefoxOptions)options);
@@ -103,9 +103,11 @@ namespace Oxygen
                                     EnableNativeEvents = true,
                                     UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
                                     EnablePersistentHover = true,
-                                    IgnoreZoomLevel = false,
+                                    IgnoreZoomLevel = true,
+                                    EnsureCleanSession = false,
                                     IntroduceInstabilityByIgnoringProtectedModeSettings = true,
-                                    RequireWindowFocus = false,
+                                    RequireWindowFocus = false
+
                                 };
                             }
                             driver = driverDirectory != null ? new InternetExplorerDriver(driverDirectory, (InternetExplorerOptions)options) : new InternetExplorerDriver((InternetExplorerOptions)options);
@@ -123,18 +125,6 @@ namespace Oxygen
             {
                 return new Context(null, null, null, x);
             }
-        }
-
-        /// <summary>
-        /// Final step in a flow.
-        /// </summary>
-        public static Context CloseContext(Context context)
-        {
-            if (context != null && context.Driver != null)
-            {
-                context.Driver.Close();
-            }
-            return context;
         }
 
         static void KillBrowserProcesses(params string[] processNames)

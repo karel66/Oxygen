@@ -1,6 +1,5 @@
 ﻿/*
- * Oxygen.Flow library
- * by karel66, 2020
+Oxygen Flow library
 */
 
 using System;
@@ -8,7 +7,7 @@ using System.Collections.ObjectModel;
 
 using OpenQA.Selenium;
 using OpenQA.Selenium.Internal;
-using OpenQA.Selenium.Remote;
+using OpenQA.Selenium.Support.UI;
 
 namespace Oxygen
 {
@@ -17,15 +16,32 @@ namespace Oxygen
     /// </summary>
     public partial class Flow
     {
-        static FlowStep ElementByCss(IFindsByCssSelector parent, string cssSelector, int index = 0) => (Context context) =>
+        /// <summary>
+        /// Returns first element if index=0, last element if index=-1
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="cssSelector"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        static FlowStep ElementByCss(IFindsElement parent, string cssSelector, int index = 0) => (Context context) =>
         {
-            RemoteWebElement child = null;
+            ReadOnlyCollection<IWebElement> result = null;
+            WebElement child = null;
 
             if (!TryUntilSuccess(() =>
             {
-                child = index == 0 ?
-                    parent.FindElementByCssSelector(cssSelector) as RemoteWebElement
-                    : parent.FindElementsByCssSelector(cssSelector)[index] as RemoteWebElement;
+                result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, cssSelector);
+                if (result.Count > 0)
+                {
+                    if (index == -1)
+                    {
+                        child = result[result.Count - 1] as WebElement;
+                    }
+                    else if (index < result.Count)
+                    {
+                        child = result[index] as WebElement;
+                    }
+                }
 
                 return child != null;
             }))
@@ -37,13 +53,13 @@ namespace Oxygen
         };
 
 
-        static FlowStep CollectionByCss(IFindsByCssSelector parent, string cssSelector) => (Context context) =>
+        static FlowStep CollectionByCss(IFindsElement parent, string cssSelector) => (Context context) =>
         {
             ReadOnlyCollection<IWebElement> result = null;
 
             if (!TryUntilSuccess(() =>
             {
-                result = parent.FindElementsByCssSelector(cssSelector);
+                result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, cssSelector);
 
                 return result != null && result.Count > 0; // Satisfied only by non-empty collection
             }))
@@ -54,31 +70,35 @@ namespace Oxygen
             return context.NextContext(result);
         };
 
-        static bool ExistsByCss(IFindsByCssSelector parent, string selector) => ElementExists(parent.FindElementByCssSelector, selector);
-
-        static bool ElementExists(Func<string, IWebElement> find, string filter)
+        static bool ExistsByCss(IWebDriver driver, string selector, double seconds = 1.0)
         {
             try
             {
-                var result = find(filter) as RemoteWebElement;
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(seconds));
+
+                WebElement result = wait.Until(drv => drv.FindElement(By.CssSelector(selector))) as WebElement;
+
                 return result != null;
             }
             catch (NoSuchElementException)
             {
-                Log($"Exists: {filter} : NO");
+                return false;
+            }
+            catch (WebDriverTimeoutException)
+            {
                 return false;
             }
         }
 
-        static FlowStep ElementByXPath(IFindsByXPath parent, string xpath, int index = 0) => (Context context) =>
+        static FlowStep ElementByXPath(IFindsElement parent, string xpath, int index = 0) => (Context context) =>
         {
-            RemoteWebElement child = null;
+            WebElement child = null;
 
             if (!TryUntilSuccess(() =>
             {
                 child = index == 0 ?
-                    parent.FindElementByXPath(xpath) as RemoteWebElement
-                    : parent.FindElementsByXPath(xpath)[index] as RemoteWebElement;
+                    parent.FindElement(SeleniumFindMechanism.XPathSelectorMechanism, xpath) as WebElement
+                    : parent.FindElements(SeleniumFindMechanism.XPathSelectorMechanism, xpath)[index] as WebElement;
 
                 return child != null;
             }))
@@ -90,13 +110,13 @@ namespace Oxygen
         };
 
 
-        static FlowStep CollectionByXPath(IFindsByXPath parent, string xpath) => (Context context) =>
+        static FlowStep CollectionByXPath(IFindsElement parent, string xpath) => (Context context) =>
         {
             ReadOnlyCollection<IWebElement> result = null;
 
             if (!TryUntilSuccess(() =>
             {
-                result = parent.FindElementsByXPath(xpath);
+                result = parent.FindElements(SeleniumFindMechanism.XPathSelectorMechanism, xpath);
 
                 return result != null && result.Count > 0; // Satisfied only by non-empty collection
             }))
@@ -107,6 +127,24 @@ namespace Oxygen
             return context.NextContext(result);
         };
 
-        static bool ExistsByXPath(IFindsByXPath parent, string xpath) => ElementExists(parent.FindElementByXPath, xpath);
+        static bool ExistsByXPath(IWebDriver driver, string xpath, double seconds = 1.0)
+        {
+            try
+            {
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(seconds));
+
+                WebElement result = wait.Until(drv => drv.FindElement(By.XPath(xpath))) as WebElement;
+
+                return result != null;
+            }
+            catch (NoSuchElementException)
+            {
+                return false;
+            }
+            catch (WebDriverTimeoutException)
+            {
+                return false;
+            }
+        }
     }
 }

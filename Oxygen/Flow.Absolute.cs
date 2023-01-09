@@ -1,6 +1,5 @@
 ﻿/*
- * Oxygen.Flow library
- * by karel66, 2020
+Oxygen Flow library
 */
 
 namespace Oxygen
@@ -14,6 +13,7 @@ namespace Oxygen
         /// Searches element from the whole page.
         /// </summary>
         public static FlowStep Find(string cssSelector, int index = 0) => (Context context) => ElementByCss(context.Driver, cssSelector, index)(context);
+        public static FlowStep FindLast(string cssSelector) => (Context context) => ElementByCss(context.Driver, cssSelector, -1)(context);
 
         /// <summary>
         /// Searches all elements from the whole page.
@@ -34,17 +34,26 @@ namespace Oxygen
         /// <summary>
         /// Check for existence of an element
         /// </summary>
-        public static bool Exists(Context context, string cssSelector) => ExistsByCss(context.Driver, cssSelector);
+        public static bool Exists(Context context, string cssSelector, double waitSeconds) => ExistsByCss(context.Driver, cssSelector, waitSeconds);
 
-        /// <summary>
-        /// Check for existence of an element
-        /// </summary>
-        public static bool ExistsOnXPath(Context context, string xpath) => ExistsByXPath(context.Driver, xpath);
+        public static bool ExistsOnXPath(Context context, string xpath, double waitSeconds) => ExistsByXPath(context.Driver, xpath, waitSeconds);
 
         /// <summary>
         /// Executes the step if element by the selector is found
         /// </summary>
-        public static FlowStep IfExists(string selector, FlowStep step) =>
-                (Context context) => ExistsByCss(context.Driver, selector) ? context.Bind(step) : context;
+        public static FlowStep IfExists(string selector, FlowStep onTrue = null, FlowStep onFalse = null, double waitSeconds = 0) =>
+                (Context context) =>
+                {
+                    if (ExistsByCss(context.Driver, selector, waitSeconds))
+                    {
+                        if (onTrue != null) return context | onTrue;
+                    }
+                    else
+                    {
+                        if (onFalse != null) return context | onFalse;
+                    }
+
+                    return context;
+                };
     }
 }

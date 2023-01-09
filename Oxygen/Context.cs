@@ -7,7 +7,6 @@ using System;
 using System.Collections.ObjectModel;
 
 using OpenQA.Selenium;
-using OpenQA.Selenium.Remote;
 
 namespace Oxygen
 {
@@ -19,12 +18,12 @@ namespace Oxygen
         /// <summary>
         /// Selenium driver instance
         /// </summary>
-        public RemoteWebDriver Driver { get; private set; }
+        public WebDriver Driver { get; private set; }
 
         /// <summary>
         /// Remote web element
         /// </summary>
-        public RemoteWebElement Element { get; private set; }
+        public WebElement Element { get; private set; }
 
         /// <summary>
         /// Collection of elements
@@ -40,7 +39,7 @@ namespace Oxygen
         /// <summary>
         /// Generic constructor
         /// </summary>
-        internal Context(RemoteWebDriver driver, RemoteWebElement element, ReadOnlyCollection<IWebElement> collection, object problem = null)
+        internal Context(WebDriver driver, WebElement element, ReadOnlyCollection<IWebElement> collection, object problem = null)
         {
             Driver = driver;
             Element = element;
@@ -54,7 +53,7 @@ namespace Oxygen
         public bool HasProblem => Problem != null;
 
         /// <summary>
-        /// Indicates that there is an RemoteWebElement instance in the context.
+        /// Indicates that there is an WebElement instance in the context.
         /// </summary>
         public bool HasElement => Element != null;
 
@@ -76,12 +75,12 @@ namespace Oxygen
         /// <summary>
         /// Set context Element
         /// </summary>
-        internal Context NextContext(RemoteWebElement element) => new Context(this.Driver, element, this.Collection);
+        internal Context NextContext(WebElement element) => new Context(this.Driver, element, this.Collection);
 
         /// <summary>
         /// Set context Element from generator
         /// </summary>
-        internal Context NextContext(Func<RemoteWebElement> generator)
+        internal Context NextContext(Func<WebElement> generator)
         {
             if (generator == null) return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
 
@@ -173,7 +172,7 @@ namespace Oxygen
 
                     if (args != null) args += ", ";
 
-                    if(argval == null)
+                    if (argval == null)
                     {
                         args += $"NULL({field.Name})";
                     }
@@ -185,9 +184,10 @@ namespace Oxygen
                     {
                         args += $"'{argval}'";
                     }
-                    else if (field.FieldType.BaseType.Name == "MulticastDelegate")
+                    else if (field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "MulticastDelegate")
                     {
                         var deleg = argval as MulticastDelegate;
+
                         var method = deleg.Method;
 
                         args += $"{field.Name}=>{method.DeclaringType.Name}.{ExtractMethodName(method.Name)}";
@@ -198,7 +198,17 @@ namespace Oxygen
                     }
                     else
                     {
-                        args += $"{argval}";
+                        foreach (var prop in field.FieldType.GetProperties())
+                        {
+                            try
+                            {
+                                args += $" [{prop.Name}={field.FieldType.InvokeMember(prop.Name, System.Reflection.BindingFlags.GetProperty, null, argval, null, null)}]";
+                            }
+                            catch (Exception x)
+                            {
+                                args += $" [{prop.Name}=<Exception of type {x.GetType().Name}>]";
+                            }
+                        }
                     }
                 }
             }
@@ -210,7 +220,7 @@ namespace Oxygen
             string name = reflectedName;
             if (name[0] == '<')
             {
-                name = name.Substring(1, name.IndexOf('>') - 1);
+                name = name[1..name.IndexOf('>')];
             }
             return name;
         }
@@ -233,6 +243,22 @@ namespace Oxygen
             {
                 return CreateProblem(x);
             }
+        }
+
+        public bool TitleStartsWith(string title)
+        {
+            while (string.IsNullOrEmpty(this.Title))
+            {
+                System.Threading.Thread.Sleep(100);
+            }
+
+            for (int i = 0; i < 10 && !this.Title.StartsWith(title, StringComparison.InvariantCultureIgnoreCase); i++)
+            {
+                System.Threading.Thread.Sleep(100);
+            }
+
+            return this.Title.StartsWith(title, StringComparison.InvariantCultureIgnoreCase);
+
         }
 
         public override string ToString() => HasProblem ? Problem.ToString() : Driver != null ? Driver.ToString() : "Uninitialized Context";

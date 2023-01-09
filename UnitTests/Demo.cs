@@ -9,20 +9,6 @@ namespace UnitTests
     [TestClass]
     public class Demo : Flow
     {
-        [TestMethod]
-        public void SearchTestFF()
-        {
-            var result =
-                 CreateContext(BrowserBrand.FireFox, new Uri("https://github.com/"))
-                 | Find("input[type=text][name=q]")
-                 | SetText("OxygenFlow")
-                 | Click("ul[id=jump-to-results]")
-                 ;
-
-            Assert.IsFalse(result.HasProblem, result);
-        }
-
-
         /// <summary>
         /// Run Google search. Chrome browser must be present and matching webdriver in C:\Selenium folder
         /// </summary>

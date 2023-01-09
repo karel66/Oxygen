@@ -10,7 +10,6 @@ using System.Threading;
 
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
-using OpenQA.Selenium.Remote;
 
 namespace Oxygen
 {
@@ -151,7 +150,7 @@ namespace Oxygen
         /// <summary>
         /// Provides the step result element for action.
         /// </summary>
-        public static FlowStep Use(FlowStep step, Action<RemoteWebElement> action) =>
+        public static FlowStep Use(FlowStep step, Action<WebElement> action) =>
             (Context context) =>
             {
                 if (context.HasProblem) return context;
@@ -191,7 +190,7 @@ namespace Oxygen
         /// <summary>
         /// Provides current context element for the action.
         /// </summary>
-        public static FlowStep UseElement(Action<RemoteWebElement> action) =>
+        public static FlowStep UseElement(Action<WebElement> action) =>
             (Context context) =>
             {
                 if (context.HasProblem) return context;
@@ -217,18 +216,11 @@ namespace Oxygen
                 if (context.Collection == null) return context.CreateProblem($"{nameof(CollectionFilter)}: missing collection");
                 if (context.Collection.Count == 0) return context.CreateProblem($"{nameof(CollectionFilter)}: empty collection");
 
-                IWebElement child = null;
+                IWebElement child = filter(context.Collection);
 
-                if (!TryUntilSuccess(() =>
-                {
-                    child = filter(context.Collection);
-                    return child != null;
-                }))
-                {
-                    return context.CreateProblem($"{nameof(CollectionFilter): failed}");
-                }
+                if (child == null) { return context.CreateProblem($"{nameof(CollectionFilter): failed}"); }
 
-                return context.NextContext(child as RemoteWebElement);
+                return context.NextContext(child as WebElement);
             };
 
         /// <summary>
@@ -236,8 +228,7 @@ namespace Oxygen
         /// </summary>
         public static FlowStep FirstContainingText(string text) =>
             (Context context) =>
-                    CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
-                        .FirstOrDefault())(context);
+                   (context) | CollectionFilter(collection => collection.Where(e => e.Text.Contains(text)).FirstOrDefault());
 
 
         /// <summary>
@@ -245,8 +236,7 @@ namespace Oxygen
         /// </summary>
         public static FlowStep LastContainingText(string text) =>
             (Context context) =>
-                    CollectionFilter(collection => collection.Where(e => e.Text.Contains(text))
-                        .LastOrDefault())(context);
+                    (context) | CollectionFilter(collection => collection.Where(e => e.Text.Contains(text)).LastOrDefault());
 
 
         /// <summary>
@@ -268,7 +258,7 @@ namespace Oxygen
 
             try
             {
-                new Actions(context.Driver).MoveToElement(c).Perform();
+                 new Actions(context.Driver).MoveToElement(c).Perform();
             }
             catch (Exception x)
             {
@@ -280,6 +270,18 @@ namespace Oxygen
                     if (c.TagName == "li")
                     {
                         new Actions(context.Driver).Click(c).Perform();
+                    }
+                    else if (c.TagName == "a")
+                    {
+                        var href = c.GetAttribute("href");
+                        if (href.StartsWith("javascript:"))
+                        {
+                            c.Click();
+                        }
+                        else
+                        {
+                            context.Driver.Navigate().GoToUrl(href);
+                        }
                     }
                     else
                     {
@@ -308,9 +310,9 @@ namespace Oxygen
         /// Mouse click on page element returned by CSS selector
         /// </summary>
         public static FlowStep Click(string selector) =>
-            (Context context) => 
-                context 
-                | Find(selector) 
+            (Context context) =>
+                context
+                | Find(selector)
                 | Click;
 
         public static Context DblClick(Context context)
@@ -373,7 +375,7 @@ namespace Oxygen
                     }
                     else if (element.TagName == "select")
                     {
-                        return Select(context.NextContext(element), text);
+                        return SelectComboText(context.NextContext(element), text);
                     }
                     else
                     {
@@ -415,28 +417,32 @@ namespace Oxygen
         /// <summary>
         /// Select display text in the combobox context element
         /// </summary>
-        public static Context Select(Context context, string value)
+        public static Context SelectComboText(Context context, string value)
         {
             var c = context.Element;
 
             if (c == null)
             {
-                return context.CreateProblem($"{nameof(Select)}: Missing context element");
+                return context.CreateProblem($"{nameof(SelectComboText)}: Missing context element");
             }
 
             try
             {
-                if (c.Text != value)
+                var item = c.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
+                    .FirstOrDefault(opt => opt.Text == value);
+
+                if (item == null && value.EndsWith("*"))
                 {
-                    var item = c.FindElementsByTagName("option").Where(opt => opt.Text == value).FirstOrDefault();
-
-                    if (item == null)
-                    {
-                        return context.CreateProblem($"Can't find combo text '{value}'");
-                    }
-
-                    item.Click();
+                    item = c.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
+                        .FirstOrDefault(opt => opt.Text.StartsWith(value.Substring(0, value.Length - 1)));
                 }
+
+                if (item == null)
+                {
+                    return context.CreateProblem($"Can't find combo text '{value}'");
+                }
+
+                item.Click();
 
                 return context.NextContext(c);
             }
@@ -488,5 +494,7 @@ namespace Oxygen
         public static FlowStep Assertion(Predicate<Context> predicate, Func<Context, string> errorMessage) =>
             (Context context) => predicate(context) ? context : context.CreateProblem(errorMessage(context));
 
+        public static FlowStep CreateProblem(object problem) =>
+            (Context context) => context.CreateProblem(problem);
     }
 }

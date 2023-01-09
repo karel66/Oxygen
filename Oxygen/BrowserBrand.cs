@@ -1,6 +1,5 @@
 ﻿/*
- * Oxygen.Flow library
- * by karel66, 2020
+Oxygen Flow library
 */
 namespace Oxygen
 {
