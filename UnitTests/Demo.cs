@@ -15,12 +15,23 @@ namespace UnitTests
         [TestMethod]
         public void SearchTestChrome()
         {
+            GoogleSearch(BrowserBrand.Chrome);
+        }
+
+        [TestMethod]
+        public void SearchTestEdge()
+        {
+            GoogleSearch(BrowserBrand.Edge);
+        }
+
+        void GoogleSearch(BrowserBrand browser)
+        {
             const string googleUrl = "https://www.google.com/";
             const string googleSearchBox = "input[name=q]";
             const string googleSearchButton = "input[type=submit]";
 
             var result =
-                CreateContext(BrowserBrand.Chrome, new Uri(googleUrl), 30, true, @"C:\Selenium")
+                CreateContext(browser, new Uri(googleUrl), 30, true, @"C:\Selenium")
                 | AcceptGoogleTerms
                 | Find(googleSearchBox)
                 | SetText("OxygenFlow")
@@ -28,7 +39,6 @@ namespace UnitTests
 
             Assert.IsFalse(result.HasProblem, result);
         }
-
         /// <summary>
         /// Agree to Google terms if presented in iframe
         /// </summary>
