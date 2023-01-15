@@ -24,7 +24,7 @@ namespace UnitTests
             GoogleSearch(BrowserBrand.Edge);
         }
 
-        void GoogleSearch(BrowserBrand browser)
+        static void GoogleSearch(BrowserBrand browser)
         {
             const string googleUrl = "https://www.google.com/";
             const string googleSearchBox = "input[name=q]";

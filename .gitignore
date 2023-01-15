@@ -12,3 +12,4 @@
 /Oxygen/TestReults
 **/UnitTests/bin
 **/UnitTests/obj
+**/.sonarqube

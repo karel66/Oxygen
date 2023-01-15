@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
 
 using OpenQA.Selenium;
 
@@ -35,7 +37,8 @@ namespace Oxygen
         /// </summary>
         public object Problem { get; private set; }
 
-        static string TaceIndent = "";
+        string _taceIndent = "";
+
         /// <summary>
         /// Generic constructor
         /// </summary>
@@ -143,8 +146,8 @@ namespace Oxygen
             var signature = $"{ExtractMethodName(step.Method.Name)} {FormatTarget(step.Target)}";
             try
             {
-                Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)} {TaceIndent}{signature}");
-                TaceIndent += '\t';
+                Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)} {_taceIndent}{signature}");
+                _taceIndent += '\t';
 
                 return step.Invoke(this);
             }
@@ -154,13 +157,13 @@ namespace Oxygen
             }
             finally
             {
-                if (TaceIndent.Length > 0) { TaceIndent = TaceIndent.Remove(TaceIndent.Length - 1, 1); }
+                if (_taceIndent.Length > 0) { _taceIndent = _taceIndent.Remove(_taceIndent.Length - 1, 1); }
             }
         }
 
         static string FormatTarget(object target)
         {
-            string args = null;
+            StringBuilder args = new StringBuilder();
 
             if (target != null)
             {
@@ -168,21 +171,24 @@ namespace Oxygen
 
                 foreach (var field in type.GetFields())
                 {
-                    var argval = type.InvokeMember(field.Name, System.Reflection.BindingFlags.GetField, null, target, null, null);
+                    if (args.Length > 0)
+                    {
+                        args.Append(", ");
+                    }
 
-                    if (args != null) args += ", ";
+                    var argval = type.InvokeMember(field.Name, System.Reflection.BindingFlags.GetField, null, target, null, null);
 
                     if (argval == null)
                     {
-                        args += $"NULL({field.Name})";
+                        args.Append($"NULL({field.Name})");
                     }
                     else if (field.FieldType.Name == "String")
                     {
-                        args += $"\"{argval}\"";
+                        args.Append($"\"{argval}\"");
                     }
                     else if (field.FieldType.Name == "Char")
                     {
-                        args += $"'{argval}'";
+                        args.Append($"'{argval}'");
                     }
                     else if (field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "MulticastDelegate")
                     {
@@ -190,29 +196,31 @@ namespace Oxygen
 
                         var method = deleg.Method;
 
-                        args += $"{field.Name}=>{method.DeclaringType.Name}.{ExtractMethodName(method.Name)}";
+                        args.Append($"{field.Name}=>{method.DeclaringType.Name}.{ExtractMethodName(method.Name)}");
+
                         if (deleg.Target != target)
                         {
-                            args += $"({FormatTarget(deleg.Target)})";
+                            args.Append($"({FormatTarget(deleg.Target)})");
                         }
+
                     }
                     else
                     {
-                        foreach (var prop in field.FieldType.GetProperties())
+                        foreach (var prop in field.FieldType.GetProperties().Select(prop => prop.Name))
                         {
                             try
                             {
-                                args += $" [{prop.Name}={field.FieldType.InvokeMember(prop.Name, System.Reflection.BindingFlags.GetProperty, null, argval, null, null)}]";
+                                args.Append($" [{prop}={field.FieldType.InvokeMember(prop, System.Reflection.BindingFlags.GetProperty, null, argval, null, null)}]");
                             }
                             catch (Exception x)
                             {
-                                args += $" [{prop.Name}=<Exception of type {x.GetType().Name}>]";
+                                args.Append($" [{prop}=<Exception of type {x.GetType().Name}>]");
                             }
                         }
                     }
                 }
             }
-            return args;
+            return args.ToString();
         }
 
         static string ExtractMethodName(string reflectedName)
@@ -261,7 +269,12 @@ namespace Oxygen
 
         }
 
-        public override string ToString() => HasProblem ? Problem.ToString() : Driver != null ? Driver.ToString() : "Uninitialized Context";
+        public override string ToString()
+        {
+            if (HasProblem) return Problem.ToString();
+            if (Driver != null) return Driver.ToString();
+            return "Uninitialized Context";
+        }
 
         public static implicit operator string(Context c) => c.ToString();
 

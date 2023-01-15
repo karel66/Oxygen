@@ -228,7 +228,7 @@ namespace Oxygen
         /// </summary>
         public static FlowStep FirstContainingText(string text) =>
             (Context context) =>
-                   (context) | CollectionFilter(collection => collection.Where(e => e.Text.Contains(text)).FirstOrDefault());
+                   (context) | CollectionFilter(collection => collection.FirstOrDefault(e => e.Text.Contains(text)));
 
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace Oxygen
         /// </summary>
         public static FlowStep LastContainingText(string text) =>
             (Context context) =>
-                    (context) | CollectionFilter(collection => collection.Where(e => e.Text.Contains(text)).LastOrDefault());
+                    (context) | CollectionFilter(collection => collection.LastOrDefault(e => e.Text.Contains(text)));
 
 
         /// <summary>

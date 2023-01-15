@@ -19,6 +19,8 @@ namespace Oxygen
     /// </summary>
     public partial class Flow
     {
+        protected Flow() { }
+
         /// <summary>
         /// Instantiates selected browser.
         /// </summary>
@@ -31,100 +33,111 @@ namespace Oxygen
         /// <returns>Driver in context</returns>
         public static Context CreateContext(BrowserBrand browserBrand, Uri startPageUrl, double implicitWait = 1.0, bool killOthers = false, string driverDirectory = null, DriverOptions options = null)
         {
-            if (startPageUrl == null) throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}");
+            if (startPageUrl == null) { throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}"); }
 
             WebDriver driver = null;
 
-            try
+            switch (browserBrand)
             {
-                switch (browserBrand)
+                case BrowserBrand.Chrome:
+                    {
+                        if (killOthers) KillBrowserProcesses("chrome");
+                        driver = InitChromeDriver(driverDirectory, options);
+                    }
+                    break;
+
+                case BrowserBrand.Edge:
+                    {
+                        if (killOthers) KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver");
+                        driver = InitEdgeDriver(driverDirectory, options);
+                    }
+                    break;
+
+                case BrowserBrand.FireFox:
+                    {
+                        if (killOthers) KillBrowserProcesses("firefox");
+                        driver = InitFirefoxDriver(driverDirectory, options);
+                    }
+                    break;
+
+                case BrowserBrand.IE:
+                    {
+                        if (killOthers) KillBrowserProcesses("iexplore");
+                        driver = InitIEDriver(driverDirectory, options);
+                    }
+                    break;
+
+                default:
+                    throw new NotImplementedException("Browser brand: " + browserBrand.ToString());
+            }
+
+            driver.Url = startPageUrl.ToString();
+
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(implicitWait);
+
+            return new Context(driver, null, null);
+        }
+
+        static WebDriver InitChromeDriver(string driverDirectory, DriverOptions options)
+        {
+
+            if (options == null)
+            {
+                options = new ChromeOptions
                 {
-                    case BrowserBrand.Chrome:
-                        {
-                            if (killOthers) KillBrowserProcesses("chrome");
-
-                            if (options == null)
-                            {
-                                options = new ChromeOptions
-                                {
-                                    PageLoadStrategy = PageLoadStrategy.Normal,
-                                    AcceptInsecureCertificates = true
-                                };
-                            }
-
-                            driver = driverDirectory != null ? new ChromeDriver(driverDirectory, (ChromeOptions)options) : new ChromeDriver((ChromeOptions)options);
-                        }
-                        break;
-
-                    case BrowserBrand.Edge:
-                        {
-                            if (killOthers) KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver");
-
-                            if (options == null)
-                            {
-                                options = new EdgeOptions
-                                {
-                                    PageLoadStrategy = PageLoadStrategy.Normal,
-                                    UnhandledPromptBehavior = UnhandledPromptBehavior.Accept
-
-                                };
-                            }
-                            driver = driverDirectory != null ? new EdgeDriver(driverDirectory, (EdgeOptions)options) : new EdgeDriver((EdgeOptions)options);
-                        }
-                        break;
-
-
-                    case BrowserBrand.FireFox:
-                        {
-                            if (killOthers) KillBrowserProcesses("firefox");
-
-                            if (options == null)
-                            {
-                                options = new FirefoxOptions
-                                {
-                                    PageLoadStrategy = PageLoadStrategy.Normal,
-                                    AcceptInsecureCertificates = true
-                                };
-                            }
-                            driver = driverDirectory != null ? new FirefoxDriver(driverDirectory, (FirefoxOptions)options) : new FirefoxDriver((FirefoxOptions)options);
-                        }
-                        break;
-
-
-                    case BrowserBrand.IE:
-                        {
-                            if (killOthers) KillBrowserProcesses("iexplore");
-
-                            if (options == null)
-                            {
-                                options = new InternetExplorerOptions
-                                {
-                                    PageLoadStrategy = PageLoadStrategy.Normal,
-                                    EnableNativeEvents = true,
-                                    UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
-                                    EnablePersistentHover = true,
-                                    IgnoreZoomLevel = true,
-                                    EnsureCleanSession = false,
-                                    IntroduceInstabilityByIgnoringProtectedModeSettings = true,
-                                    RequireWindowFocus = false
-
-                                };
-                            }
-                            driver = driverDirectory != null ? new InternetExplorerDriver(driverDirectory, (InternetExplorerOptions)options) : new InternetExplorerDriver((InternetExplorerOptions)options);
-                        }
-                        break;
-                }
-
-                driver.Url = startPageUrl.ToString();
-
-                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(implicitWait);
-
-                return new Context(driver, null, null);
+                    PageLoadStrategy = PageLoadStrategy.Normal,
+                    AcceptInsecureCertificates = true
+                };
             }
-            catch (Exception x)
+
+            return driverDirectory != null ? new ChromeDriver(driverDirectory, (ChromeOptions)options) : new ChromeDriver((ChromeOptions)options);
+        }
+
+        static WebDriver InitEdgeDriver(string driverDirectory, DriverOptions options)
+        {
+            if (options == null)
             {
-                return new Context(null, null, null, x);
+                options = new EdgeOptions
+                {
+                    PageLoadStrategy = PageLoadStrategy.Normal,
+                    UnhandledPromptBehavior = UnhandledPromptBehavior.Accept
+
+                };
             }
+            return driverDirectory != null ? new EdgeDriver(driverDirectory, (EdgeOptions)options) : new EdgeDriver((EdgeOptions)options);
+        }
+
+        static WebDriver InitFirefoxDriver(string driverDirectory, DriverOptions options)
+        {
+            if (options == null)
+            {
+                options = new FirefoxOptions
+                {
+                    PageLoadStrategy = PageLoadStrategy.Normal,
+                    AcceptInsecureCertificates = true
+                };
+            }
+            return driverDirectory != null ? new FirefoxDriver(driverDirectory, (FirefoxOptions)options) : new FirefoxDriver((FirefoxOptions)options);
+        }
+
+        static WebDriver InitIEDriver(string driverDirectory, DriverOptions options)
+        {
+            if (options == null)
+            {
+                options = new InternetExplorerOptions
+                {
+                    PageLoadStrategy = PageLoadStrategy.Normal,
+                    EnableNativeEvents = true,
+                    UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
+                    EnablePersistentHover = true,
+                    IgnoreZoomLevel = true,
+                    EnsureCleanSession = false,
+                    IntroduceInstabilityByIgnoringProtectedModeSettings = true,
+                    RequireWindowFocus = false
+
+                };
+            }
+            return driverDirectory != null ? new InternetExplorerDriver(driverDirectory, (InternetExplorerOptions)options) : new InternetExplorerDriver((InternetExplorerOptions)options);
         }
 
         static void KillBrowserProcesses(params string[] processNames)
@@ -137,7 +150,10 @@ namespace Oxygen
                     {
                         process.Kill();
                     }
-                    catch { }
+                    catch (Exception x)
+                    {
+                        Console.WriteLine(x.ToString());
+                    }
                 }
             }
         }
