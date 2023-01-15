@@ -32,12 +32,9 @@ namespace UnitTests
         /// <summary>
         /// Agree to Google terms if presented in iframe
         /// </summary>
-        static Context AcceptGoogleTerms(Context context) =>           
+        static Context AcceptGoogleTerms(Context context) =>
             (context)
-            | IfExists("iframe", _ => 
-                _
-                | SwitchToFrame("iframe")
-                | Click("div#introAgreeButton")
-                | SwitchToDefault);
+            | IfExists("button#L2AGLb", _ => _ | Click("button#L2AGLb"));
+
     }
 }
