@@ -1,4 +1,8 @@
-﻿namespace Oxygen
+﻿/*
+* Oxygen.Flow library
+* by karel66, 2023
+*/
+namespace Oxygen
 {
     public static class SeleniumFindMechanism
     {

@@ -1,6 +1,6 @@
 ﻿/* 
- * Oxygen.Flow library
- * by karel66, 2020
+* Oxygen.Flow library
+* by karel66, 2023
  */
 
 using System;
