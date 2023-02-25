@@ -24,14 +24,16 @@ namespace UnitTests
             GoogleSearch(BrowserBrand.Edge);
         }
 
+        const string googleUrl = "https://www.google.com/";
+
         static void GoogleSearch(BrowserBrand browser)
         {
-            const string googleUrl = "https://www.google.com/";
+
             const string googleSearchBox = "input[name=q]";
-            const string googleSearchButton = "input[type=submit]";
+            const string googleSearchButton = "input[name=btnK]";
 
             var result =
-                CreateContext(browser, new Uri(googleUrl), 30, true, @"C:\Selenium")
+                CreateContext(browser, new Uri(googleUrl), 1, true, @"C:\Selenium")
                 | AcceptGoogleTerms
                 | Find(googleSearchBox)
                 | SetText("OxygenFlow")
@@ -43,8 +45,18 @@ namespace UnitTests
         /// Agree to Google terms if presented in iframe
         /// </summary>
         static Context AcceptGoogleTerms(Context context) =>
-            (context)
-            | IfExists("button#L2AGLb", _ => _ | Click("button#L2AGLb"));
+            context
+            | IfExists("button#L2AGLb",
+                _ => _
+                | Click("button#L2AGLb")
+                | Refresh()
+              );
 
+        static FlowStep Refresh() =>
+            (Context c) =>
+            {
+                c.Driver.Navigate().GoToUrl(c.Driver.Url);
+                return c;
+            };
     }
 }

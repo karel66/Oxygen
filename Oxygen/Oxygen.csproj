@@ -4,6 +4,6 @@
 		<Version>5.8.0</Version>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="Selenium.WebDriver" Version="4.2.0" />
+	  <PackageReference Include="Selenium.WebDriver" Version="4.8.1" />
 	</ItemGroup>
 </Project>

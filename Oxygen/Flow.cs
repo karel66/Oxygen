@@ -48,7 +48,7 @@ namespace Oxygen
 
                 case BrowserBrand.Edge:
                     {
-                        if (killOthers) KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver");
+                        if (killOthers) KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver", "msedgedriver");
                         driver = InitEdgeDriver(driverDirectory, options);
                     }
                     break;
