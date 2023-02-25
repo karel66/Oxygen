@@ -76,9 +76,15 @@ namespace Oxygen
         public string Value => Element?.GetAttribute("value");
 
         /// <summary>
+        /// Returns context without Element or Collection.
+        /// </summary>
+        /// <returns></returns>
+        public Context EmptyContext() => new(this.Driver, null, null);
+
+        /// <summary>
         /// Set context Element
         /// </summary>
-        internal Context NextContext(WebElement element) => new Context(this.Driver, element, this.Collection);
+        internal Context NextContext(WebElement element) => new(this.Driver, element, this.Collection);
 
         /// <summary>
         /// Set context Element from generator
@@ -100,7 +106,7 @@ namespace Oxygen
         /// <summary>
         /// Set context Collection
         /// </summary>
-        internal Context NextContext(ReadOnlyCollection<IWebElement> collection) => new Context(this.Driver, this.Element, collection);
+        internal Context NextContext(ReadOnlyCollection<IWebElement> collection) => new(this.Driver, this.Element, collection);
 
 
         /// <summary>
@@ -126,7 +132,7 @@ namespace Oxygen
         /// </summary>
         public Context CreateProblem(object problem)
         {
-            if (problem == null) problem = "Null passed as problem!";
+            problem ??= "Null passed as problem!";
 
             Console.WriteLine(problem.ToString());
 
@@ -147,7 +153,7 @@ namespace Oxygen
             try
             {
                 Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)} {_taceIndent}{signature}");
-                _taceIndent += '\t';
+                _taceIndent += "  ";
 
                 return step.Invoke(this);
             }
@@ -157,13 +163,16 @@ namespace Oxygen
             }
             finally
             {
-                if (_taceIndent.Length > 0) { _taceIndent = _taceIndent.Remove(_taceIndent.Length - 1, 1); }
+                if (_taceIndent.Length > 1)
+                {
+                    _taceIndent = _taceIndent.Remove(_taceIndent.Length - 2);
+                }
             }
         }
 
         static string FormatTarget(object target)
         {
-            StringBuilder args = new StringBuilder();
+            StringBuilder args = new();
 
             if (target != null)
             {
@@ -171,24 +180,19 @@ namespace Oxygen
 
                 foreach (var field in type.GetFields())
                 {
-                    if (args.Length > 0)
-                    {
-                        args.Append(", ");
-                    }
-
                     var argval = type.InvokeMember(field.Name, System.Reflection.BindingFlags.GetField, null, target, null, null);
 
                     if (argval == null)
                     {
-                        args.Append($"NULL({field.Name})");
+                        args.AppendWithComma($"NULL({field.Name})");
                     }
                     else if (field.FieldType.Name == "String")
                     {
-                        args.Append($"\"{argval}\"");
+                        args.AppendWithComma($"\"{argval}\"");
                     }
                     else if (field.FieldType.Name == "Char")
                     {
-                        args.Append($"'{argval}'");
+                        args.AppendWithComma($"'{argval}'");
                     }
                     else if (field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "MulticastDelegate")
                     {
@@ -196,13 +200,12 @@ namespace Oxygen
 
                         var method = deleg.Method;
 
-                        args.Append($"{field.Name}=>{method.DeclaringType.Name}.{ExtractMethodName(method.Name)}");
+                        args.AppendWithComma($"{field.Name}=>{method.DeclaringType.Name}.{ExtractMethodName(method.Name)}");
 
                         if (deleg.Target != target)
                         {
-                            args.Append($"({FormatTarget(deleg.Target)})");
+                            args.AppendWithComma($"({FormatTarget(deleg.Target)})");
                         }
-
                     }
                     else
                     {
@@ -210,11 +213,11 @@ namespace Oxygen
                         {
                             try
                             {
-                                args.Append($" [{prop}={field.FieldType.InvokeMember(prop, System.Reflection.BindingFlags.GetProperty, null, argval, null, null)}]");
+                                args.AppendWithComma($" [{prop}={field.FieldType.InvokeMember(prop, System.Reflection.BindingFlags.GetProperty, null, argval, null, null)}]");
                             }
                             catch (Exception x)
                             {
-                                args.Append($" [{prop}=<Exception of type {x.GetType().Name}>]");
+                                args.AppendWithComma($" [{prop}=<Exception of type {x.GetType().Name}>]");
                             }
                         }
                     }

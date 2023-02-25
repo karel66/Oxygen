@@ -9,6 +9,8 @@ namespace UnitTests
     [TestClass]
     public class Demo : Flow
     {
+        const string seleniumDriversDirectory = @"C:\Selenium";
+
         /// <summary>
         /// Run Google search. Chrome browser must be present and matching webdriver in C:\Selenium folder
         /// </summary>
@@ -24,23 +26,21 @@ namespace UnitTests
             GoogleSearch(BrowserBrand.Edge);
         }
 
-        const string googleUrl = "https://www.google.com/";
-
         static void GoogleSearch(BrowserBrand browser)
         {
-
+            const string googleUrl = "https://www.google.com/";
             const string googleSearchBox = "input[name=q]";
-            const string googleSearchButton = "input[name=btnK]";
 
             var result =
-                CreateContext(browser, new Uri(googleUrl), 1, true, @"C:\Selenium")
+                CreateContext(browser, new Uri(googleUrl), 1, true, seleniumDriversDirectory)
                 | AcceptGoogleTerms
                 | Find(googleSearchBox)
-                | SetText("OxygenFlow")
-                | Click(googleSearchButton);
+                | SetText("Oxygen.Flow")
+                | PressEnter;
 
             Assert.IsFalse(result.HasProblem, result);
         }
+
         /// <summary>
         /// Agree to Google terms if presented in iframe
         /// </summary>
@@ -56,7 +56,7 @@ namespace UnitTests
             (Context c) =>
             {
                 c.Driver.Navigate().GoToUrl(c.Driver.Url);
-                return c;
+                return c.EmptyContext();
             };
     }
 }

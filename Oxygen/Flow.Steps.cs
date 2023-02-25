@@ -434,7 +434,7 @@ namespace Oxygen
                 if (item == null && value.EndsWith("*"))
                 {
                     item = c.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
-                        .FirstOrDefault(opt => opt.Text.StartsWith(value.Substring(0, value.Length - 1)));
+                        .FirstOrDefault(opt => opt.Text.StartsWith(value[..^1]));
                 }
 
                 if (item == null)

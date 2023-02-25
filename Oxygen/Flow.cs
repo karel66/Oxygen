@@ -81,62 +81,50 @@ namespace Oxygen
         static WebDriver InitChromeDriver(string driverDirectory, DriverOptions options)
         {
 
-            if (options == null)
+            options ??= new ChromeOptions
             {
-                options = new ChromeOptions
-                {
-                    PageLoadStrategy = PageLoadStrategy.Normal,
-                    AcceptInsecureCertificates = true
-                };
-            }
+                PageLoadStrategy = PageLoadStrategy.Normal,
+                AcceptInsecureCertificates = true
+            };
 
             return driverDirectory != null ? new ChromeDriver(driverDirectory, (ChromeOptions)options) : new ChromeDriver((ChromeOptions)options);
         }
 
         static WebDriver InitEdgeDriver(string driverDirectory, DriverOptions options)
         {
-            if (options == null)
+            options ??= new EdgeOptions
             {
-                options = new EdgeOptions
-                {
-                    PageLoadStrategy = PageLoadStrategy.Normal,
-                    UnhandledPromptBehavior = UnhandledPromptBehavior.Accept
+                PageLoadStrategy = PageLoadStrategy.Normal,
+                UnhandledPromptBehavior = UnhandledPromptBehavior.Accept
 
-                };
-            }
+            };
             return driverDirectory != null ? new EdgeDriver(driverDirectory, (EdgeOptions)options) : new EdgeDriver((EdgeOptions)options);
         }
 
         static WebDriver InitFirefoxDriver(string driverDirectory, DriverOptions options)
         {
-            if (options == null)
+            options ??= new FirefoxOptions
             {
-                options = new FirefoxOptions
-                {
-                    PageLoadStrategy = PageLoadStrategy.Normal,
-                    AcceptInsecureCertificates = true
-                };
-            }
+                PageLoadStrategy = PageLoadStrategy.Normal,
+                AcceptInsecureCertificates = true
+            };
             return driverDirectory != null ? new FirefoxDriver(driverDirectory, (FirefoxOptions)options) : new FirefoxDriver((FirefoxOptions)options);
         }
 
         static WebDriver InitIEDriver(string driverDirectory, DriverOptions options)
         {
-            if (options == null)
+            options ??= new InternetExplorerOptions
             {
-                options = new InternetExplorerOptions
-                {
-                    PageLoadStrategy = PageLoadStrategy.Normal,
-                    EnableNativeEvents = true,
-                    UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
-                    EnablePersistentHover = true,
-                    IgnoreZoomLevel = true,
-                    EnsureCleanSession = false,
-                    IntroduceInstabilityByIgnoringProtectedModeSettings = true,
-                    RequireWindowFocus = false
+                PageLoadStrategy = PageLoadStrategy.Normal,
+                EnableNativeEvents = true,
+                UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
+                EnablePersistentHover = true,
+                IgnoreZoomLevel = true,
+                EnsureCleanSession = false,
+                IntroduceInstabilityByIgnoringProtectedModeSettings = true,
+                RequireWindowFocus = false
 
-                };
-            }
+            };
             return driverDirectory != null ? new InternetExplorerDriver(driverDirectory, (InternetExplorerOptions)options) : new InternetExplorerDriver((InternetExplorerOptions)options);
         }
 

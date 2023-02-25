@@ -75,11 +75,9 @@ namespace Oxygen
         {
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(seconds));
+                WebDriverWait wait = new(driver, TimeSpan.FromSeconds(seconds));
 
-                WebElement result = wait.Until(drv => drv.FindElement(By.CssSelector(selector))) as WebElement;
-
-                return result != null;
+                return wait.Until(drv => drv.FindElement(By.CssSelector(selector))) is WebElement result;
             }
             catch (NoSuchElementException)
             {
@@ -132,11 +130,9 @@ namespace Oxygen
         {
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(seconds));
+                WebDriverWait wait = new(driver, TimeSpan.FromSeconds(seconds));
 
-                WebElement result = wait.Until(drv => drv.FindElement(By.XPath(xpath))) as WebElement;
-
-                return result != null;
+                return wait.Until(drv => drv.FindElement(By.XPath(xpath))) is WebElement result;
             }
             catch (NoSuchElementException)
             {
