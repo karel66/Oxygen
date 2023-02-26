@@ -21,17 +21,17 @@ namespace Oxygen
         /// Returns first element if index=0, last element if index=-1
         /// </summary>
         /// <param name="parent"></param>
-        /// <param name="cssSelector"></param>
+        /// <param name="selector"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        static FlowStep ElementByCss(IFindsElement parent, string cssSelector, int index = 0) => (Context context) =>
+        static FlowStep ElementByCss(IFindsElement parent, string selector, int index = 0) => (Context context) =>
         {
             ReadOnlyCollection<IWebElement> result = null;
             WebElement child = null;
 
             if (!TryUntilSuccess(() =>
             {
-                result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, cssSelector);
+                result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, selector);
                 if (result.Count > 0)
                 {
                     if (index == -1)
@@ -47,25 +47,25 @@ namespace Oxygen
                 return child != null;
             }))
             {
-                return context.CreateProblem($"{nameof(ElementByCss)}: '{cssSelector}' failed");
+                return context.CreateProblem($"{nameof(ElementByCss)}: '{selector}' failed");
             }
 
             return context.NextContext(child);
         };
 
 
-        static FlowStep CollectionByCss(IFindsElement parent, string cssSelector) => (Context context) =>
+        static FlowStep CollectionByCss(IFindsElement parent, string selector) => (Context context) =>
         {
             ReadOnlyCollection<IWebElement> result = null;
 
             if (!TryUntilSuccess(() =>
             {
-                result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, cssSelector);
+                result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, selector);
 
                 return result != null && result.Count > 0; // Satisfied only by non-empty collection
             }))
             {
-                return context.CreateProblem($"{nameof(CollectionByCss)}: '{cssSelector}' failed");
+                return context.CreateProblem($"{nameof(CollectionByCss)}: '{selector}' failed");
             }
 
             return context.NextContext(result);

@@ -79,19 +79,24 @@ namespace Oxygen
         /// Returns context without Element or Collection.
         /// </summary>
         /// <returns></returns>
-        public Context EmptyContext() => new(this.Driver, null, null);
+        public Context EmptyContext() =>
+            new(this.Driver, null, null);
 
         /// <summary>
         /// Set context Element
         /// </summary>
-        internal Context NextContext(WebElement element) => new(this.Driver, element, this.Collection);
+        internal Context NextContext(WebElement element) =>
+            new(this.Driver, element, this.Collection);
 
         /// <summary>
         /// Set context Element from generator
         /// </summary>
         internal Context NextContext(Func<WebElement> generator)
         {
-            if (generator == null) return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
+            if (generator == null)
+            {
+                return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
+            }
 
             try
             {
@@ -106,7 +111,8 @@ namespace Oxygen
         /// <summary>
         /// Set context Collection
         /// </summary>
-        internal Context NextContext(ReadOnlyCollection<IWebElement> collection) => new(this.Driver, this.Element, collection);
+        internal Context NextContext(ReadOnlyCollection<IWebElement> collection) =>
+            new(this.Driver, this.Element, collection);
 
 
         /// <summary>
@@ -114,11 +120,14 @@ namespace Oxygen
         /// </summary>
         internal Context NextContext(Func<ReadOnlyCollection<IWebElement>> generator)
         {
-            if (generator == null) return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
+            if (generator == null)
+            {
+                return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
+            }
 
             try
             {
-                return new Context(this.Driver, this.Element, generator.Invoke());
+                return NextContext(generator.Invoke());
             }
             catch (Exception x)
             {
@@ -149,12 +158,14 @@ namespace Oxygen
 
             if (step == null) return CreateProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
 
-            var signature = $"{ExtractMethodName(step.Method.Name)} {FormatTarget(step.Target)}";
+            var signature = $"{ExtractMethodName(step.Method.Name)} ({FormatTarget(step.Target)})";
+
+            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)} {_taceIndent}{signature}");
+
+            _taceIndent += "  ";
+
             try
             {
-                Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)} {_taceIndent}{signature}");
-                _taceIndent += "  ";
-
                 return step.Invoke(this);
             }
             catch (Exception x)
@@ -170,7 +181,7 @@ namespace Oxygen
             }
         }
 
-        static string FormatTarget(object target)
+        string FormatTarget(object target)
         {
             StringBuilder args = new();
 
@@ -184,15 +195,15 @@ namespace Oxygen
 
                     if (argval == null)
                     {
-                        args.AppendWithComma($"NULL({field.Name})");
+                        args.AppendWithComma($"{field.Name}=null");
                     }
                     else if (field.FieldType.Name == "String")
                     {
-                        args.AppendWithComma($"\"{argval}\"");
+                        args.AppendWithComma($"{field.Name}=\"{argval}\"");
                     }
                     else if (field.FieldType.Name == "Char")
                     {
-                        args.AppendWithComma($"'{argval}'");
+                        args.AppendWithComma($"{field.Name}='{argval}'");
                     }
                     else if (field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "MulticastDelegate")
                     {
@@ -200,11 +211,11 @@ namespace Oxygen
 
                         var method = deleg.Method;
 
-                        args.AppendWithComma($"{field.Name}=>{method.DeclaringType.Name}.{ExtractMethodName(method.Name)}");
+                        args.AppendWithComma($"{field.Name}={ExtractMethodName(method.Name)}");
 
                         if (deleg.Target != target)
                         {
-                            args.AppendWithComma($"({FormatTarget(deleg.Target)})");
+                            args.Append($" ({FormatTarget(deleg.Target)})");
                         }
                     }
                     else

@@ -339,8 +339,8 @@ namespace Oxygen
         /// <summary>
         /// Sets text box, text area and combo text on page
         /// </summary>
-        public static FlowStep SetText(string cssSelector, string text) =>
-            (Context context) => context | Find(cssSelector) | SetText(text);
+        public static FlowStep SetText(string selector, string text) =>
+            (Context context) => context | Find(selector) | SetText(text);
 
         /// <summary>
         /// Sets current context element text if text box, text area or dropdown list.

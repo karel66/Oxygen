@@ -13,13 +13,13 @@ namespace Oxygen
         /// <summary>
         /// Searches element from the whole page.
         /// </summary>
-        public static FlowStep Find(string cssSelector, int index = 0) => (Context context) => ElementByCss(context.Driver, cssSelector, index)(context);
-        public static FlowStep FindLast(string cssSelector) => (Context context) => ElementByCss(context.Driver, cssSelector, -1)(context);
+        public static FlowStep Find(string selector, int index = 0) => (Context context) => ElementByCss(context.Driver, selector, index)(context);
+        public static FlowStep FindLast(string selector) => (Context context) => ElementByCss(context.Driver, selector, -1)(context);
 
         /// <summary>
         /// Searches all elements from the whole page.
         /// </summary>
-        public static FlowStep FindAll(string cssSelector) => (Context context) => CollectionByCss(context.Driver, cssSelector)(context);
+        public static FlowStep FindAll(string selector) => (Context context) => CollectionByCss(context.Driver, selector)(context);
 
         /// <summary>
         /// Searches from whole page.
@@ -35,7 +35,7 @@ namespace Oxygen
         /// <summary>
         /// Check for existence of an element
         /// </summary>
-        public static bool Exists(Context context, string cssSelector, double waitSeconds) => ExistsByCss(context.Driver, cssSelector, waitSeconds);
+        public static bool Exists(Context context, string selector, double waitSeconds) => ExistsByCss(context.Driver, selector, waitSeconds);
 
         public static bool ExistsOnXPath(Context context, string xpath, double waitSeconds) => ExistsByXPath(context.Driver, xpath, waitSeconds);
 

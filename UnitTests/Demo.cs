@@ -35,7 +35,7 @@ namespace UnitTests
                 CreateContext(browser, new Uri(googleUrl), 1, true, seleniumDriversDirectory)
                 | AcceptGoogleTerms
                 | Find(googleSearchBox)
-                | SetText("Oxygen.Flow")
+                | SetText("Oxygen")
                 | PressEnter;
 
             Assert.IsFalse(result.HasProblem, result);
