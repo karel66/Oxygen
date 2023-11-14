@@ -10,9 +10,7 @@ Actual heavy lifting is done by CSS selectors, so one should master the language
 Basic flow steps example:
 ```csharp
 using System;
-
 using Elements.Oxygen;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTests
