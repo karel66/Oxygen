@@ -3,7 +3,7 @@
 * by karel66, 2023
 */
 
-namespace Oxygen
+namespace Elements.Oxygen
 {
     /// <summary>
     /// Enumerates supported browsers

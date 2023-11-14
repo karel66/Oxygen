@@ -2,7 +2,7 @@
 * Oxygen.Flow library
 * by karel66, 2023
 */
-namespace Oxygen
+namespace Elements.Oxygen
 {
     public delegate Context FlowStep(Context context);
 }

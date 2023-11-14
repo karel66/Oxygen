@@ -12,7 +12,7 @@ using OpenQA.Selenium.Edge;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.IE;
 
-namespace Oxygen
+namespace Elements.Oxygen
 {
     /// <summary>
     /// Base class for Selenium UI tests.

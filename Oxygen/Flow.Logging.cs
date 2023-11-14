@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Oxygen
+namespace Elements.Oxygen
 {
     /// <summary>
     /// Logging methods

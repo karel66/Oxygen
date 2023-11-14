@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Oxygen
+namespace Elements.Oxygen
 {
     public static class ExtensionMethods
     {

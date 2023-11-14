@@ -11,7 +11,7 @@ using System.Threading;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 
-namespace Oxygen
+namespace Elements.Oxygen
 {
     /// <summary>
     /// Common UI testing steps
