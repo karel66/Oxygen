@@ -1,8 +1,8 @@
 ﻿using System;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using Elements.Oxygen;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTests
 {
@@ -12,45 +12,33 @@ namespace UnitTests
         const string seleniumDriversDirectory = @"C:\Selenium";
 
         /// <summary>
-        /// Run Google search. Chrome browser must be present and matching webdriver in C:\Selenium folder
+        /// Run DuckDuck search. Chrome browser must be present and matching webdriver in C:\Selenium folder
         /// </summary>
         [TestMethod]
         public void SearchTestChrome()
         {
-            GoogleSearch(BrowserBrand.Chrome);
+            DuckDuckSearch(BrowserBrand.Chrome);
         }
 
         [TestMethod]
         public void SearchTestEdge()
         {
-            GoogleSearch(BrowserBrand.Edge);
+            DuckDuckSearch(BrowserBrand.Edge);
         }
 
-        static void GoogleSearch(BrowserBrand browser)
+        static void DuckDuckSearch(BrowserBrand browser)
         {
-            const string googleUrl = "https://www.google.com/";
-            const string googleSearchBox = "input[name=q]";
+            const string url = "https://duckduckgo.com/";
+            const string searchBox = "input[name=q]";
 
             var result =
-                CreateContext(browser, new Uri(googleUrl), 1, true, seleniumDriversDirectory)
-                | AcceptGoogleTerms
-                | Find(googleSearchBox)
+                CreateContext(browser, new Uri(url), 1, true, seleniumDriversDirectory)
+                | Find(searchBox)
                 | SetText("Oxygen")
                 | PressEnter;
 
             Assert.IsFalse(result.HasProblem, result);
         }
-
-        /// <summary>
-        /// Agree to Google terms if presented in iframe
-        /// </summary>
-        static Context AcceptGoogleTerms(Context context) =>
-            context
-            | IfExists("button#L2AGLb",
-                _ => _
-                | Click("button#L2AGLb")
-                | Refresh()
-              );
 
         static FlowStep Refresh() =>
             (Context c) =>

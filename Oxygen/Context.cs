@@ -6,6 +6,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 using OpenQA.Selenium;
@@ -191,7 +192,7 @@ namespace Elements.Oxygen
 
                 foreach (var field in type.GetFields())
                 {
-                    var argval = type.InvokeMember(field.Name, System.Reflection.BindingFlags.GetField, null, target, null, null);
+                    var argval = field.GetValue(target);
 
                     if (argval == null)
                     {
@@ -224,7 +225,7 @@ namespace Elements.Oxygen
                         {
                             try
                             {
-                                args.AppendWithComma($" [{prop}={field.FieldType.InvokeMember(prop, System.Reflection.BindingFlags.GetProperty, null, argval, null, null)}]");
+                                args.AppendWithComma($" [{prop}={field.FieldType.InvokeMember(prop, BindingFlags.GetProperty, null, argval, null, null)}]");
                             }
                             catch (Exception x)
                             {
