@@ -10,9 +10,24 @@ namespace Elements.Oxygen
     /// </summary>
     public enum BrowserBrand
     {
+        /// <summary>
+        /// Google Chrome
+        /// </summary>
         Chrome,
+
+        /// <summary>
+        /// Microsoft Edge
+        /// </summary>
         Edge,
+
+        /// <summary>
+        /// Mozilla Firefox
+        /// </summary>
         FireFox,
+
+        /// <summary>
+        /// Internet Explorer
+        /// </summary>
         IE
     }
 }
