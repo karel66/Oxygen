@@ -7,6 +7,6 @@
 		<AnalysisLevel>latest-recommended</AnalysisLevel>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="Selenium.WebDriver" Version="4.8.1" />
+	  <PackageReference Include="Selenium.WebDriver" Version="4.15.0" />
 	</ItemGroup>
 </Project>

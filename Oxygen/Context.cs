@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -182,7 +183,7 @@ namespace Elements.Oxygen
             }
         }
 
-        string FormatTarget(object target)
+        static string FormatTarget(object target)
         {
             StringBuilder args = new();
 
@@ -216,7 +217,7 @@ namespace Elements.Oxygen
 
                         if (deleg.Target != target)
                         {
-                            args.Append($" ({FormatTarget(deleg.Target)})");
+                            args.Append(System.Globalization.CultureInfo.InvariantCulture, $" ({FormatTarget(deleg.Target)})");
                         }
                     }
                     else
@@ -267,7 +268,7 @@ namespace Elements.Oxygen
                 return CreateProblem(x);
             }
         }
-
+  
         public bool TitleStartsWith(string title)
         {
             while (string.IsNullOrEmpty(this.Title))

@@ -60,13 +60,6 @@ namespace Elements.Oxygen
                     }
                     break;
 
-                case BrowserBrand.IE:
-                    {
-                        if (killOthers) KillBrowserProcesses("iexplore");
-                        driver = InitIEDriver(driverDirectory, options);
-                    }
-                    break;
-
                 default:
                     throw new NotImplementedException("Browser brand: " + browserBrand.ToString());
             }
@@ -78,7 +71,7 @@ namespace Elements.Oxygen
             return new Context(driver, null, null);
         }
 
-        static WebDriver InitChromeDriver(string driverDirectory, DriverOptions options)
+        static ChromeDriver InitChromeDriver(string driverDirectory, DriverOptions options)
         {
 
             options ??= new ChromeOptions
@@ -90,7 +83,7 @@ namespace Elements.Oxygen
             return driverDirectory != null ? new ChromeDriver(driverDirectory, (ChromeOptions)options) : new ChromeDriver((ChromeOptions)options);
         }
 
-        static WebDriver InitEdgeDriver(string driverDirectory, DriverOptions options)
+        static EdgeDriver InitEdgeDriver(string driverDirectory, DriverOptions options)
         {
             options ??= new EdgeOptions
             {
@@ -101,7 +94,7 @@ namespace Elements.Oxygen
             return driverDirectory != null ? new EdgeDriver(driverDirectory, (EdgeOptions)options) : new EdgeDriver((EdgeOptions)options);
         }
 
-        static WebDriver InitFirefoxDriver(string driverDirectory, DriverOptions options)
+        static FirefoxDriver InitFirefoxDriver(string driverDirectory, DriverOptions options)
         {
             options ??= new FirefoxOptions
             {
@@ -109,23 +102,6 @@ namespace Elements.Oxygen
                 AcceptInsecureCertificates = true
             };
             return driverDirectory != null ? new FirefoxDriver(driverDirectory, (FirefoxOptions)options) : new FirefoxDriver((FirefoxOptions)options);
-        }
-
-        static WebDriver InitIEDriver(string driverDirectory, DriverOptions options)
-        {
-            options ??= new InternetExplorerOptions
-            {
-                PageLoadStrategy = PageLoadStrategy.Normal,
-                EnableNativeEvents = true,
-                UnhandledPromptBehavior = UnhandledPromptBehavior.Accept,
-                EnablePersistentHover = true,
-                IgnoreZoomLevel = true,
-                EnsureCleanSession = false,
-                IntroduceInstabilityByIgnoringProtectedModeSettings = true,
-                RequireWindowFocus = false
-
-            };
-            return driverDirectory != null ? new InternetExplorerDriver(driverDirectory, (InternetExplorerOptions)options) : new InternetExplorerDriver((InternetExplorerOptions)options);
         }
 
         static void KillBrowserProcesses(params string[] processNames)

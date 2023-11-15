@@ -24,15 +24,8 @@ namespace Elements.Oxygen
         public static FlowStep Script(string script, params object[] args) =>
             (Context context) =>
             {
-                try
-                {
-                    ((IJavaScriptExecutor)context.Driver).ExecuteScript(script, args);
-                    return context;
-                }
-                catch (Exception x)
-                {
-                    return context.CreateProblem($"{nameof(Script)}: exception: " + x.Message);
-                }
+                ((IJavaScriptExecutor)context.Driver).ExecuteScript(script, args);
+                return context;
             };
 
         /// <summary>
@@ -40,15 +33,8 @@ namespace Elements.Oxygen
         /// </summary>
         public static Context SwitchToFrame(Context context)
         {
-            try
-            {
-                context.Driver.SwitchTo().Frame(context.Element);
-                return context;
-            }
-            catch (Exception x)
-            {
-                return context.CreateProblem($"{nameof(Script)}: exception: " + x.Message);
-            }
+            context.Driver.SwitchTo().Frame(context.Element);
+            return context;
         }
 
         /// <summary>
@@ -62,15 +48,8 @@ namespace Elements.Oxygen
         /// </summary>
         public static Context SwitchToDefault(Context context)
         {
-            try
-            {
-                context.Driver.SwitchTo().DefaultContent();
-                return context;
-            }
-            catch (Exception x)
-            {
-                return context.CreateProblem($"{nameof(Script)}: exception: " + x.Message);
-            }
+            context.Driver.SwitchTo().DefaultContent();
+            return context;
         }
 
         /// <summary>
@@ -157,21 +136,14 @@ namespace Elements.Oxygen
 
                 if (action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
 
-                try
-                {
-                    var result = step(context);
+                var result = step(context);
 
-                    if (!result.HasProblem)
-                    {
-                        action(result.Element);
-                    }
-
-                    return result;
-                }
-                catch (Exception x)
+                if (!result.HasProblem)
                 {
-                    return context.CreateProblem(x);
+                    action(result.Element);
                 }
+
+                return result;
             };
 
         /// <summary>
@@ -197,14 +169,7 @@ namespace Elements.Oxygen
 
                 if (action == null) return context.CreateProblem($"{nameof(UseElement)}: NULL action argument.");
 
-                try
-                {
-                    action(context.Element);
-                }
-                catch (Exception x)
-                {
-                    return context.CreateProblem(x);
-                }
+                action(context.Element);
 
                 return context;
             };
@@ -244,11 +209,6 @@ namespace Elements.Oxygen
         /// </summary>
         public static Context Click(Context context)
         {
-            if (context == null)
-            {
-                return context.CreateProblem(LogError($"{nameof(Click)}: NULL context", null));
-            }
-
             var c = context.Element;
 
             if (c == null)
@@ -256,46 +216,42 @@ namespace Elements.Oxygen
                 return context.CreateProblem(LogError($"{nameof(Click)}: NULL element!", null));
             }
 
-            try
-            {
-                 new Actions(context.Driver).MoveToElement(c).Perform();
-            }
-            catch (Exception x)
-            {
-                LogError(x.Message);
-            }
-
-            if (TryUntilSuccess(() =>
-                {
-                    if (c.TagName == "li")
-                    {
-                        new Actions(context.Driver).Click(c).Perform();
-                    }
-                    else if (c.TagName == "a")
-                    {
-                        var href = c.GetAttribute("href");
-                        if (href.StartsWith("javascript:"))
-                        {
-                            c.Click();
-                        }
-                        else
-                        {
-                            context.Driver.Navigate().GoToUrl(href);
-                        }
-                    }
-                    else
-                    {
-                        c.Click();
-                    }
-
-                    return true;
-                }))
+            if (TryUntilSuccess(() => SpecificClick(context)))
             {
                 return context;
             }
-            else
+
+            return context.CreateProblem($"{nameof(Click)}: failed");
+        }
+
+        /// <summary>
+        /// Use specific click implementation depending on the context element tag name.
+        /// </summary>
+        static bool SpecificClick(Context context)
+        {
+            var c = context.Element;
+
+            switch (c.TagName)
             {
-                return context.CreateProblem($"{nameof(Click)}: failed");
+                case "li":
+                    new Actions(context.Driver).Click(c).Perform();
+                    return true;
+
+                case "a":
+                    var href = c.GetAttribute("href");
+                    if (href.StartsWith("javascript:", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        c.Click();
+                    }
+                    else
+                    {
+                        context.Driver.Navigate().GoToUrl(href);
+                    }
+                    return true;
+
+                default:
+                    c.Click();
+                    return true;
             }
         }
 
@@ -315,23 +271,16 @@ namespace Elements.Oxygen
                 | Find(selector)
                 | Click;
 
-        public static Context DblClick(Context context)
-        {
-            Click(context);
-
-            try
+        public static Context DblClick(Context context) =>
+            Click(context).Bind(next =>
             {
-                new Actions(context.Driver).DoubleClick(context.Element).Perform();
+                new Actions(next.Driver).DoubleClick(next.Element).Perform();
 
                 Thread.Sleep(10);
 
-                return context;
-            }
-            catch (Exception x)
-            {
-                return context.CreateProblem(x);
-            }
-        }
+                return next;
+            });
+
 
         public static FlowStep DblClick(string selector) =>
             (Context context) => context | Find(selector) | DblClick;
@@ -357,34 +306,27 @@ namespace Elements.Oxygen
 
                 TryUntilSuccess(() => element.Displayed);
 
-                try
+                switch (element.TagName)
                 {
-                    if (element.TagName == "input")
-                    {
+                    case "input":
                         if (!string.IsNullOrEmpty(element.GetAttribute("value")))
                         {
                             element.SendKeys(" ");
                             element.Clear();
                         }
                         element.SendKeys(text);
-                    }
-                    else if (element.TagName == "textarea")
-                    {
+                        break;
+
+                    case "textarea":
                         element.Clear();
                         element.SendKeys(text);
-                    }
-                    else if (element.TagName == "select")
-                    {
+                        break;
+
+                    case "select":
                         return SelectComboText(context.NextContext(element), text);
-                    }
-                    else
-                    {
+
+                    default:
                         return context.CreateProblem($"{nameof(SetText)}: unexpected tag <{element.TagName}>");
-                    }
-                }
-                catch (Exception x)
-                {
-                    return context.CreateProblem(x);
                 }
 
                 return context;
@@ -402,14 +344,7 @@ namespace Elements.Oxygen
                 return context.CreateProblem("PressEnter: Missing context element");
             }
 
-            try
-            {
-                new Actions(context.Driver).SendKeys(c, Keys.Enter).Perform();
-            }
-            catch (Exception x)
-            {
-                return context.CreateProblem(x);
-            }
+            new Actions(context.Driver).SendKeys(c, Keys.Enter).Perform();
 
             return context;
         }
@@ -426,32 +361,23 @@ namespace Elements.Oxygen
                 return context.CreateProblem($"{nameof(SelectComboText)}: Missing context element");
             }
 
-            try
+            var item = c.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
+                .FirstOrDefault(opt => opt.Text == value);
+
+            if (item == null && value.EndsWith("*", StringComparison.OrdinalIgnoreCase))
             {
-                var item = c.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
-                    .FirstOrDefault(opt => opt.Text == value);
-
-                if (item == null && value.EndsWith("*"))
-                {
-                    item = c.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
-                        .FirstOrDefault(opt => opt.Text.StartsWith(value[..^1]));
-                }
-
-                if (item == null)
-                {
-                    return context.CreateProblem($"Can't find combo text '{value}'");
-                }
-
-                item.Click();
-
-                return context.NextContext(c);
+                item = c.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
+                    .FirstOrDefault(opt => opt.Text.StartsWith(value[..^1], StringComparison.InvariantCultureIgnoreCase));
             }
 
-            catch (Exception x)
+            if (item == null)
             {
-                return context.CreateProblem(x);
+                return context.CreateProblem($"Can't find combo text '{value}'");
             }
 
+            item.Click();
+
+            return context.NextContext(c);
         }
 
         /// <summary>
@@ -460,18 +386,12 @@ namespace Elements.Oxygen
         public static FlowStep FollowLink(string linkID, string targetTitle) =>
             (Context context) =>
             {
-                TryUntilSuccess(() =>
+                if (TryUntilSuccess(() => Click(linkID)(context).Title == targetTitle))
                 {
-                    Click(linkID)(context);
-                    return context.Title == targetTitle;
-                });
-
-                if (context.Title != targetTitle)
-                {
-                    return context.CreateProblem($"Expected title '{targetTitle}', actual '{context.Title}'");
+                    return context;
                 }
 
-                return context;
+                return context.CreateProblem($"Expected title '{targetTitle}', actual '{context.Title}'");
             };
 
         public static FlowStep AssertAttributeValue(string attributeName, string expected) =>

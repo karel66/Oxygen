@@ -23,11 +23,6 @@ namespace Elements.Oxygen
         /// <summary>
         /// Mozilla Firefox
         /// </summary>
-        FireFox,
-
-        /// <summary>
-        /// Internet Explorer
-        /// </summary>
-        IE
+        FireFox
     }
 }
