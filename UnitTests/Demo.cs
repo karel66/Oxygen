@@ -31,7 +31,7 @@ namespace UnitTests
         {
             DuckDuckSearch(BrowserBrand.Edge);
         }
-       
+
         static void DuckDuckSearch(BrowserBrand browser)
         {
             const string url = "https://duckduckgo.com/";

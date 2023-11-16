@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -55,27 +54,27 @@ namespace Elements.Oxygen
         /// <summary>
         /// Indicates that there is a problem in the context.
         /// </summary>
-        public bool HasProblem => Problem != null;
+        public readonly bool HasProblem => Problem != null;
 
         /// <summary>
         /// Indicates that there is an WebElement instance in the context.
         /// </summary>
-        public bool HasElement => Element != null;
+        public readonly bool HasElement => Element != null;
 
         /// <summary>
         /// Returns current browser window title.
         /// </summary>
-        public string Title => Driver?.Title;
+        public readonly string Title => Driver?.Title;
 
         /// <summary>
         /// Returns current context element text.
         /// </summary>
-        public string Text => Element?.Text;
+        public readonly string Text => Element?.Text;
 
         /// <summary>
         /// Returns current context element value attribute.
         /// </summary>
-        public string Value => Element?.GetAttribute("value");
+        public readonly string Value => Element?.GetAttribute("value");
 
         /// <summary>
         /// Returns context without Element or Collection.
@@ -268,7 +267,7 @@ namespace Elements.Oxygen
                 return CreateProblem(x);
             }
         }
-  
+
         public bool TitleStartsWith(string title)
         {
             while (string.IsNullOrEmpty(this.Title))

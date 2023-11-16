@@ -82,9 +82,9 @@ namespace Elements.Oxygen
         /// <summary>
         /// Retries until success or the given number of attempts has failed.
         /// </summary>
-        public static bool TryUntilSuccess(Func<bool> success, int numberOfAttempts = 10)
+        public static bool Retry(Func<bool> success, int numberOfAttempts = 10)
         {
-            if (success == null) throw new ArgumentNullException(nameof(success));
+            ArgumentNullException.ThrowIfNull(success, nameof(success));
 
             int delay = 0;
 
@@ -216,7 +216,7 @@ namespace Elements.Oxygen
                 return context.CreateProblem(LogError($"{nameof(Click)}: NULL element!", null));
             }
 
-            if (TryUntilSuccess(() => SpecificClick(context)))
+            if (Retry(() => SpecificClick(context)))
             {
                 return context;
             }
@@ -304,7 +304,10 @@ namespace Elements.Oxygen
 
                 var element = context.Element;
 
-                TryUntilSuccess(() => element.Displayed);
+                if (!Retry(() => element.Displayed))
+                {
+                    return context.CreateProblem($"{nameof(SetText)}: element not displayed");
+                }
 
                 switch (element.TagName)
                 {
@@ -381,12 +384,12 @@ namespace Elements.Oxygen
         }
 
         /// <summary>
-        /// Clicks teh hyperlink and checks target window title.
+        /// Clicks the hyperlink and checks target window title.
         /// </summary>
         public static FlowStep FollowLink(string linkID, string targetTitle) =>
             (Context context) =>
             {
-                if (TryUntilSuccess(() => Click(linkID)(context).Title == targetTitle))
+                if (Retry(() => Click(linkID)(context).Title == targetTitle))
                 {
                     return context;
                 }

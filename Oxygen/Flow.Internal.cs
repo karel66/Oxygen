@@ -29,14 +29,14 @@ namespace Elements.Oxygen
             ReadOnlyCollection<IWebElement> result = null;
             WebElement child = null;
 
-            if (!TryUntilSuccess(() =>
+            if (Retry(() =>
             {
                 result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, selector);
                 if (result.Count > 0)
                 {
                     if (index == -1)
                     {
-                        child = result[result.Count - 1] as WebElement;
+                        child = result[^1] as WebElement;
                     }
                     else if (index < result.Count)
                     {
@@ -47,10 +47,10 @@ namespace Elements.Oxygen
                 return child != null;
             }))
             {
-                return context.CreateProblem($"{nameof(ElementByCss)}: '{selector}' failed");
+                return context.NextContext(child);
             }
 
-            return context.NextContext(child);
+            return context.CreateProblem($"{nameof(ElementByCss)}: '{selector}' failed");
         };
 
 
@@ -58,17 +58,18 @@ namespace Elements.Oxygen
         {
             ReadOnlyCollection<IWebElement> result = null;
 
-            if (!TryUntilSuccess(() =>
+            if (Retry(() =>
             {
                 result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, selector);
 
                 return result != null && result.Count > 0; // Satisfied only by non-empty collection
             }))
             {
-                return context.CreateProblem($"{nameof(CollectionByCss)}: '{selector}' failed");
+                return context.NextContext(result);
             }
 
-            return context.NextContext(result);
+            return context.CreateProblem($"{nameof(CollectionByCss)}: '{selector}' failed");
+
         };
 
         static bool ExistsByCss(IWebDriver driver, string selector, double seconds = 1.0)
@@ -93,7 +94,7 @@ namespace Elements.Oxygen
         {
             WebElement child = null;
 
-            if (!TryUntilSuccess(() =>
+            if (Retry(() =>
             {
                 child = index == 0 ?
                     parent.FindElement(SeleniumFindMechanism.XPathSelectorMechanism, xpath) as WebElement
@@ -102,10 +103,10 @@ namespace Elements.Oxygen
                 return child != null;
             }))
             {
-                return context.CreateProblem($"{nameof(ElementByXPath)}: '{xpath}' failed");
+                return context.NextContext(child);
             }
 
-            return context.NextContext(child);
+            return context.CreateProblem($"{nameof(ElementByXPath)}: '{xpath}' failed");
         };
 
 
@@ -113,17 +114,17 @@ namespace Elements.Oxygen
         {
             ReadOnlyCollection<IWebElement> result = null;
 
-            if (!TryUntilSuccess(() =>
+            if (Retry(() =>
             {
                 result = parent.FindElements(SeleniumFindMechanism.XPathSelectorMechanism, xpath);
 
                 return result != null && result.Count > 0; // Satisfied only by non-empty collection
             }))
             {
-                return context.CreateProblem($"{nameof(CollectionByXPath)}: '{xpath}' failed");
+                return context.NextContext(result);
             }
 
-            return context.NextContext(result);
+            return context.CreateProblem($"{nameof(CollectionByXPath)}: '{xpath}' failed");
         };
 
         static bool ExistsByXPath(IWebDriver driver, string xpath, double seconds = 1.0)
