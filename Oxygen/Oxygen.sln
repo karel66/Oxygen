@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elements.Oxygen", "Elements.Oxygen.csproj", "{B4874A3A-B23C-4229-9AB9-6FC700D0809F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oxygen", "Oxygen.csproj", "{B4874A3A-B23C-4229-9AB9-6FC700D0809F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elements.Oxygen.Test", "..\UnitTests\Elements.Oxygen.Test.csproj", "{85071242-05E4-4F69-8A0F-3C101F2BC99E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oxygen.Test", "..\UnitTests\Oxygen.Test.csproj", "{85071242-05E4-4F69-8A0F-3C101F2BC99E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

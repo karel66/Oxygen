@@ -1,6 +1,6 @@
 using System.Text;
 
-using Elements.Oxygen;
+using Oxygen;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

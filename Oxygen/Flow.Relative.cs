@@ -3,7 +3,7 @@
 * by karel66, 2023
 */
 
-namespace Elements.Oxygen
+namespace Oxygen
 {
     /// <summary>
     /// Relative searches (current element context).

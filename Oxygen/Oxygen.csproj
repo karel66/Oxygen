@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net6.0-windows</TargetFramework>
-		<Version>5.8.0</Version>
 		<Copyright>karel66</Copyright>
 		<RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
 		<AnalysisLevel>latest-recommended</AnalysisLevel>

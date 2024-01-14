@@ -10,7 +10,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Internal;
 using OpenQA.Selenium.Support.UI;
 
-namespace Elements.Oxygen
+namespace Oxygen
 {
     /// <summary>
     /// Internal methods

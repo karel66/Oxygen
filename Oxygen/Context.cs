@@ -11,7 +11,7 @@ using System.Text;
 
 using OpenQA.Selenium;
 
-namespace Elements.Oxygen
+namespace Oxygen
 {
     /// <summary>
     /// Flow context with monadic Bind. 
