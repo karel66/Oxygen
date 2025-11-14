@@ -45,13 +45,13 @@ namespace Oxygen
         public static FlowStep IfExists(string selector, FlowStep onTrue = null, FlowStep onFalse = null, double waitSeconds = 0) =>
                 (Context context) =>
                 {
-                    if (ExistsByCss(context.Driver, selector, waitSeconds))
+                    if(ExistsByCss(context.Driver, selector, waitSeconds))
                     {
-                        if (onTrue != null) return context | onTrue;
+                        if(onTrue != null) return onTrue(context);
                     }
                     else
                     {
-                        if (onFalse != null) return context | onFalse;
+                        if(onFalse != null) return onFalse(context);
                     }
 
                     return context;

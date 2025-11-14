@@ -6,7 +6,7 @@ namespace Oxygen
     {
         public static StringBuilder AppendWithComma(this StringBuilder sb, string text)
         {
-            if (sb.Length > 0)
+            if(sb.Length > 0)
             {
                 sb.Append(", ");
             }

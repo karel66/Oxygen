@@ -1,11 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net6.0-windows</TargetFramework>
-		<Copyright>karel66</Copyright>
-		<RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
-		<AnalysisLevel>latest-recommended</AnalysisLevel>
+		<TargetFramework>net9.0-windows</TargetFramework>
+		<Version>6.8.0</Version>
+		<Configurations>Debug;Release;Local</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="Selenium.WebDriver" Version="4.15.0" />
+	  <None Remove="Oxygen.csproj.vspscc" />
+	  <None Remove="packages.config" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Selenium.WebDriver" Version="4.38.0" />
 	</ItemGroup>
 </Project>

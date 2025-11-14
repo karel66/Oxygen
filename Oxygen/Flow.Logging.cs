@@ -26,8 +26,8 @@ namespace Oxygen
         /// </summary>
         public static string LogError(string message, Exception x = null)
         {
-            var result = "*** ERROR *** " + message;
-            if (x != null) result += ": " + x.ToString();
+            string result = "*** ERROR *** " + message;
+            if(x != null) result += ": " + x.ToString();
             Log(result);
             return result;
         }

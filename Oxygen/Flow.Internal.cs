@@ -20,25 +20,21 @@ namespace Oxygen
         /// <summary>
         /// Returns first element if index=0, last element if index=-1
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="selector"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
         static FlowStep ElementByCss(IFindsElement parent, string selector, int index = 0) => (Context context) =>
         {
             ReadOnlyCollection<IWebElement> result = null;
             WebElement child = null;
 
-            if (Retry(() =>
+            if(Retry(() =>
             {
                 result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, selector);
-                if (result.Count > 0)
+                if(result.Count > 0)
                 {
-                    if (index == -1)
+                    if(index == -1)
                     {
                         child = result[^1] as WebElement;
                     }
-                    else if (index < result.Count)
+                    else if(index < result.Count)
                     {
                         child = result[index] as WebElement;
                     }
@@ -58,7 +54,7 @@ namespace Oxygen
         {
             ReadOnlyCollection<IWebElement> result = null;
 
-            if (Retry(() =>
+            if(Retry(() =>
             {
                 result = parent.FindElements(SeleniumFindMechanism.CssSelectorMechanism, selector);
 
@@ -72,20 +68,24 @@ namespace Oxygen
 
         };
 
-        static bool ExistsByCss(IWebDriver driver, string selector, double seconds = 1.0)
+        public static bool ExistsByCss(IWebDriver driver, string selector, double seconds = 1.0)
         {
             try
             {
                 WebDriverWait wait = new(driver, TimeSpan.FromSeconds(seconds));
 
-                return wait.Until(drv => drv.FindElement(By.CssSelector(selector))) is WebElement result;
+                wait.Until(drv => drv.FindElement(By.CssSelector(selector)));
+
+                return true;
             }
-            catch (NoSuchElementException)
+            catch(NoSuchElementException)
             {
+                Log($"ExistsByCss [{selector}] not found");
                 return false;
             }
-            catch (WebDriverTimeoutException)
+            catch(WebDriverTimeoutException)
             {
+                Log($"ExistsByCss [{selector}] not found");
                 return false;
             }
         }
@@ -94,14 +94,14 @@ namespace Oxygen
         {
             WebElement child = null;
 
-            if (Retry(() =>
+            if(Retry(() =>
             {
                 child = index == 0 ?
                     parent.FindElement(SeleniumFindMechanism.XPathSelectorMechanism, xpath) as WebElement
                     : parent.FindElements(SeleniumFindMechanism.XPathSelectorMechanism, xpath)[index] as WebElement;
 
                 return child != null;
-            }))
+            },1))
             {
                 return context.NextContext(child);
             }
@@ -114,7 +114,7 @@ namespace Oxygen
         {
             ReadOnlyCollection<IWebElement> result = null;
 
-            if (Retry(() =>
+            if(Retry(() =>
             {
                 result = parent.FindElements(SeleniumFindMechanism.XPathSelectorMechanism, xpath);
 
@@ -127,7 +127,7 @@ namespace Oxygen
             return context.CreateProblem($"{nameof(CollectionByXPath)}: '{xpath}' failed");
         };
 
-        static bool ExistsByXPath(IWebDriver driver, string xpath, double seconds = 1.0)
+        public static bool ExistsByXPath(IWebDriver driver, string xpath, double seconds = 1.0)
         {
             try
             {
@@ -135,12 +135,14 @@ namespace Oxygen
 
                 return wait.Until(drv => drv.FindElement(By.XPath(xpath))) is WebElement result;
             }
-            catch (NoSuchElementException)
+            catch(NoSuchElementException)
             {
+                Log($"ExistsByXPath [{xpath}] not found");
                 return false;
             }
-            catch (WebDriverTimeoutException)
+            catch(WebDriverTimeoutException)
             {
+                Log($"ExistsByXPath [{xpath}] not found");
                 return false;
             }
         }

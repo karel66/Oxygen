@@ -32,29 +32,29 @@ namespace Oxygen
         /// <returns>Driver in context</returns>
         public static Context CreateContext(BrowserBrand browserBrand, Uri startPageUrl, double implicitWait = 1.0, bool killOthers = false, string driverDirectory = null, DriverOptions options = null)
         {
-            if (startPageUrl == null) { throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}"); }
+            if(startPageUrl == null) { throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}"); }
 
             WebDriver driver = null;
 
-            switch (browserBrand)
+            switch(browserBrand)
             {
                 case BrowserBrand.Chrome:
                     {
-                        if (killOthers) KillBrowserProcesses("chrome");
+                        if(killOthers) KillBrowserProcesses("chrome");
                         driver = InitChromeDriver(driverDirectory, options);
                     }
                     break;
 
                 case BrowserBrand.Edge:
                     {
-                        if (killOthers) KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver", "msedgedriver");
+                        if(killOthers) KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver", "msedgedriver");
                         driver = InitEdgeDriver(driverDirectory, options);
                     }
                     break;
 
                 case BrowserBrand.FireFox:
                     {
-                        if (killOthers) KillBrowserProcesses("firefox");
+                        if(killOthers) KillBrowserProcesses("firefox");
                         driver = InitFirefoxDriver(driverDirectory, options);
                     }
                     break;
@@ -78,8 +78,10 @@ namespace Oxygen
                 PageLoadStrategy = PageLoadStrategy.Normal,
                 AcceptInsecureCertificates = true
             };
-
-            return driverDirectory != null ? new ChromeDriver(driverDirectory, (ChromeOptions)options) : new ChromeDriver((ChromeOptions)options);
+            ((ChromeOptions)options).AddArgument("--disable-search-engine-choice-screen");
+            var driver = driverDirectory != null ? new ChromeDriver(driverDirectory, (ChromeOptions)options) : new ChromeDriver((ChromeOptions)options);
+            driver.Manage().Cookies.DeleteAllCookies();
+            return driver;
         }
 
         static EdgeDriver InitEdgeDriver(string driverDirectory, DriverOptions options)
@@ -90,7 +92,9 @@ namespace Oxygen
                 UnhandledPromptBehavior = UnhandledPromptBehavior.Accept
 
             };
-            return driverDirectory != null ? new EdgeDriver(driverDirectory, (EdgeOptions)options) : new EdgeDriver((EdgeOptions)options);
+            var driver = driverDirectory != null ? new EdgeDriver(driverDirectory, (EdgeOptions)options) : new EdgeDriver((EdgeOptions)options);
+            driver.Manage().Cookies.DeleteAllCookies();
+            return driver;
         }
 
         static FirefoxDriver InitFirefoxDriver(string driverDirectory, DriverOptions options)
@@ -100,20 +104,22 @@ namespace Oxygen
                 PageLoadStrategy = PageLoadStrategy.Normal,
                 AcceptInsecureCertificates = true
             };
-            return driverDirectory != null ? new FirefoxDriver(driverDirectory, (FirefoxOptions)options) : new FirefoxDriver((FirefoxOptions)options);
+            var driver = driverDirectory != null ? new FirefoxDriver(driverDirectory, (FirefoxOptions)options) : new FirefoxDriver((FirefoxOptions)options);
+            driver.Manage().Cookies.DeleteAllCookies();
+            return driver;
         }
 
         static void KillBrowserProcesses(params string[] processNames)
         {
-            foreach (var pname in processNames)
+            foreach(string pname in processNames)
             {
-                foreach (var process in Process.GetProcessesByName(pname))
+                foreach(Process process in Process.GetProcessesByName(pname))
                 {
                     try
                     {
                         process.Kill();
                     }
-                    catch (Exception x)
+                    catch(Exception x)
                     {
                         Console.WriteLine(x.ToString());
                     }

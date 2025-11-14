@@ -6,10 +6,10 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 
 namespace Oxygen
 {
@@ -33,6 +33,9 @@ namespace Oxygen
         /// </summary>
         public ReadOnlyCollection<IWebElement> Collection { get; private set; }
 
+
+        public object UserCredentials { get; set; }
+
         /// <summary>
         /// Run-time error result
         /// </summary>
@@ -43,12 +46,13 @@ namespace Oxygen
         /// <summary>
         /// Generic constructor
         /// </summary>
-        internal Context(WebDriver driver, WebElement element, ReadOnlyCollection<IWebElement> collection, object problem = null)
+        internal Context(WebDriver driver, WebElement element, ReadOnlyCollection<IWebElement> collection, object problem = null, object credentials = null)
         {
             Driver = driver;
             Element = element;
             Collection = collection;
             Problem = problem;
+            UserCredentials = credentials;
         }
 
         /// <summary>
@@ -80,21 +84,21 @@ namespace Oxygen
         /// Returns context without Element or Collection.
         /// </summary>
         /// <returns></returns>
-        public Context EmptyContext() =>
-            new(this.Driver, null, null);
+        public readonly Context EmptyContext() =>
+            new(this.Driver, null, null, null, null);
 
         /// <summary>
         /// Set context Element
         /// </summary>
-        internal Context NextContext(WebElement element) =>
-            new(this.Driver, element, this.Collection);
+        internal readonly Context NextContext(WebElement element) =>
+            new(this.Driver, element, this.Collection, null, this.UserCredentials);
 
         /// <summary>
         /// Set context Element from generator
         /// </summary>
         internal Context NextContext(Func<WebElement> generator)
         {
-            if (generator == null)
+            if(generator == null)
             {
                 return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
             }
@@ -103,7 +107,7 @@ namespace Oxygen
             {
                 return NextContext(generator.Invoke());
             }
-            catch (Exception x)
+            catch(Exception x)
             {
                 return CreateProblem(x);
             }
@@ -112,8 +116,8 @@ namespace Oxygen
         /// <summary>
         /// Set context Collection
         /// </summary>
-        internal Context NextContext(ReadOnlyCollection<IWebElement> collection) =>
-            new(this.Driver, this.Element, collection);
+        internal readonly Context NextContext(ReadOnlyCollection<IWebElement> collection) =>
+            new(this.Driver, this.Element, collection, this.Problem, this.UserCredentials);
 
 
         /// <summary>
@@ -121,7 +125,7 @@ namespace Oxygen
         /// </summary>
         internal Context NextContext(Func<ReadOnlyCollection<IWebElement>> generator)
         {
-            if (generator == null)
+            if(generator == null)
             {
                 return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
             }
@@ -130,7 +134,7 @@ namespace Oxygen
             {
                 return NextContext(generator.Invoke());
             }
-            catch (Exception x)
+            catch(Exception x)
             {
                 return CreateProblem(x);
             }
@@ -140,13 +144,13 @@ namespace Oxygen
         /// <summary>
         /// Set context Problem
         /// </summary>
-        public Context CreateProblem(object problem)
+        public readonly Context CreateProblem(object problem)
         {
             problem ??= "Null passed as problem!";
 
-            Console.WriteLine(problem.ToString());
+            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)}{_taceIndent}Problem created: {problem}");
 
-            return new Context(this.Driver, this.Element, this.Collection, problem);
+            return new Context(this.Driver, this.Element, this.Collection, problem, this.UserCredentials);
         }
 
 
@@ -155,11 +159,11 @@ namespace Oxygen
         /// </summary>
         public Context Bind(FlowStep step)
         {
-            if (this.HasProblem) return this; // short-circuit problems
+            if(this.HasProblem) return this; // short-circuit problems
 
-            if (step == null) return CreateProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
+            if(step == null) return CreateProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
 
-            var signature = $"{ExtractMethodName(step.Method.Name)} ({FormatTarget(step.Target)})";
+            string signature = $"{ExtractMethodName(step.Method.Name)} ({FormatTarget(step.Target)})";
 
             Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)} {_taceIndent}{signature}");
 
@@ -169,13 +173,33 @@ namespace Oxygen
             {
                 return step.Invoke(this);
             }
-            catch (Exception x)
+            catch(UnhandledAlertException)
+            {
+                WebDriverWait wait = new(Driver, TimeSpan.FromSeconds(5));
+
+                IAlert alert = wait.Until(drv =>
+                {
+                    try
+                    {
+                        return drv.SwitchTo().Alert();
+                    }
+                    catch(NoAlertPresentException)
+                    {
+                        return null;
+                    }
+                });
+
+                alert?.Accept();
+
+                return step.Invoke(this);
+            }
+            catch(Exception x)
             {
                 return CreateProblem(x);
             }
             finally
             {
-                if (_taceIndent.Length > 1)
+                if(_taceIndent.Length > 1)
                 {
                     _taceIndent = _taceIndent.Remove(_taceIndent.Length - 2);
                 }
@@ -186,53 +210,63 @@ namespace Oxygen
         {
             StringBuilder args = new();
 
-            if (target != null)
+            if(target != null)
             {
-                var type = target.GetType();
+                Type type = target.GetType();
 
-                foreach (var field in type.GetFields())
+                foreach(System.Reflection.FieldInfo field in type.GetFields())
                 {
-                    var argval = field.GetValue(target);
+                    object argval = field.GetValue(target);
 
-                    if (argval == null)
+                    if(argval == null)
                     {
                         args.AppendWithComma($"{field.Name}=null");
                     }
-                    else if (field.FieldType.Name == "String")
+                    else if(field.FieldType.Name == "String")
                     {
                         args.AppendWithComma($"{field.Name}=\"{argval}\"");
                     }
-                    else if (field.FieldType.Name == "Char")
+                    else if(field.FieldType.Name == "Char")
                     {
                         args.AppendWithComma($"{field.Name}='{argval}'");
                     }
-                    else if (field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "MulticastDelegate")
+                    else if(field.FieldType.IsValueType)
                     {
-                        var deleg = argval as MulticastDelegate;
+                        args.AppendWithComma($"{field.Name}={argval}");
+                    }
+                    else if(field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "Array")
+                    {
+                        args.AppendWithComma($"{field.Name}=[");
 
-                        var method = deleg.Method;
-
-                        args.AppendWithComma($"{field.Name}={ExtractMethodName(method.Name)}");
-
-                        if (deleg.Target != target)
+                        foreach(object value in (Array)argval)
                         {
-                            args.Append(System.Globalization.CultureInfo.InvariantCulture, $" ({FormatTarget(deleg.Target)})");
+                            args.Append($"\"{value}\", ");
                         }
+
+                        args.Append("]");
+                    }
+
+                    else if(field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "MulticastDelegate")
+                    {
+                        args.AppendWithComma($"{field.Name}=[{field.FieldType.Name}]");
                     }
                     else
                     {
-                        foreach (var prop in field.FieldType.GetProperties().Select(prop => prop.Name))
+                        args.AppendWithComma($"{field.Name}={{");
+                        foreach(string prop in field.FieldType.GetProperties().Select(prop => prop.Name))
                         {
                             try
                             {
-                                args.AppendWithComma($" [{prop}={field.FieldType.InvokeMember(prop, BindingFlags.GetProperty, null, argval, null, null)}]");
+                                args.Append($"{prop}:\"{field.FieldType.InvokeMember(prop, System.Reflection.BindingFlags.GetProperty, null, argval, null, null)}\", ");
                             }
-                            catch (Exception x)
+                            catch(Exception x)
                             {
-                                args.AppendWithComma($" [{prop}=<Exception of type {x.GetType().Name}>]");
+                                args.Append($"{prop}:\"<Exception of type {x.GetType().Name}>\", ");
                             }
                         }
+                        args.Append("}");
                     }
+
                 }
             }
             return args.ToString();
@@ -241,7 +275,7 @@ namespace Oxygen
         static string ExtractMethodName(string reflectedName)
         {
             string name = reflectedName;
-            if (name[0] == '<')
+            if(name[0] == '<')
             {
                 name = name[1..name.IndexOf('>')];
             }
@@ -253,29 +287,29 @@ namespace Oxygen
         /// </summary>
         public Context Use(Action<Context> action)
         {
-            if (this.HasProblem) return this; // short-circuit problems
+            if(this.HasProblem) return this; // short-circuit problems
 
-            if (action == null) return CreateProblem($"{nameof(Use)}: NULL argument: {nameof(action)}");
+            if(action == null) return CreateProblem($"{nameof(Use)}: NULL argument: {nameof(action)}");
 
             try
             {
                 action.Invoke(this);
                 return this;
             }
-            catch (Exception x)
+            catch(Exception x)
             {
                 return CreateProblem(x);
             }
         }
 
-        public bool TitleStartsWith(string title)
+        public readonly bool TitleStartsWith(string title)
         {
-            while (string.IsNullOrEmpty(this.Title))
+            while(string.IsNullOrEmpty(this.Title))
             {
                 System.Threading.Thread.Sleep(100);
             }
 
-            for (int i = 0; i < 10 && !this.Title.StartsWith(title, StringComparison.InvariantCultureIgnoreCase); i++)
+            for(int i = 0; i < 10 && !this.Title.StartsWith(title, StringComparison.InvariantCultureIgnoreCase); i++)
             {
                 System.Threading.Thread.Sleep(100);
             }
@@ -284,10 +318,10 @@ namespace Oxygen
 
         }
 
-        public override string ToString()
+        public override readonly string ToString()
         {
-            if (HasProblem) return Problem.ToString();
-            if (Driver != null) return Driver.ToString();
+            if(HasProblem) return Problem.ToString();
+            if(Driver != null) return Driver.ToString();
             return "Uninitialized Context";
         }
 

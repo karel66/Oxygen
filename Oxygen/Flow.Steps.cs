@@ -4,6 +4,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -53,12 +54,6 @@ namespace Oxygen
         }
 
         /// <summary>
-        /// Executes the step only if the condition is true.
-        /// </summary>
-        public static FlowStep If(bool condition, FlowStep step) =>
-            (Context context) => condition ? step(context) : context;
-
-        /// <summary>
         /// Executes the step only if the condition returns true.
         /// </summary>
         public static FlowStep If(Func<Context, bool> condition, FlowStep step) =>
@@ -70,7 +65,7 @@ namespace Oxygen
         public static FlowStep While(Func<Context, bool> condition, FlowStep step) =>
             (Context context) =>
             {
-                while (condition(context))
+                while(condition(context))
                 {
                     context = step(context);
                 }
@@ -88,25 +83,26 @@ namespace Oxygen
 
             int delay = 0;
 
-            for (int i = 1; i <= numberOfAttempts; i++)
+            for(int i = 1; i <= numberOfAttempts; i++)
             {
                 try
                 {
-                    if (success())
+                    if(success())
                     {
                         return true;
                     }
                 }
-                catch (Exception x)
+                catch(Exception x)
                 {
                     LogError(x.Message);
+
+                    Log($"RETRY [{i}]");
+
+                    delay += 200;
+
+                    Thread.Sleep(delay);
                 }
 
-                Log($"RETRY [{i}]");
-
-                delay += 200;
-
-                Thread.Sleep(delay);
             }
 
             return false;
@@ -118,9 +114,9 @@ namespace Oxygen
         public static FlowStep Use(FlowStep step, Action<Context> action) =>
             (Context context) =>
             {
-                if (context.HasProblem) return context;
+                if(context.HasProblem) return context;
 
-                if (action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
+                if(action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
 
                 return step(context).Use(action);
             };
@@ -132,13 +128,13 @@ namespace Oxygen
         public static FlowStep Use(FlowStep step, Action<WebElement> action) =>
             (Context context) =>
             {
-                if (context.HasProblem) return context;
+                if(context.HasProblem) return context;
 
-                if (action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
+                if(action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
 
-                var result = step(context);
+                Context result = step(context);
 
-                if (!result.HasProblem)
+                if(!result.HasProblem)
                 {
                     action(result.Element);
                 }
@@ -152,9 +148,9 @@ namespace Oxygen
         public static FlowStep Use(Action<Context> action) =>
             (Context context) =>
             {
-                if (context.HasProblem) return context;
+                if(context.HasProblem) return context;
 
-                if (action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
+                if(action == null) return context.CreateProblem($"{nameof(Use)}: NULL action argument.");
 
                 return context.Use(action);
             };
@@ -165,9 +161,9 @@ namespace Oxygen
         public static FlowStep UseElement(Action<WebElement> action) =>
             (Context context) =>
             {
-                if (context.HasProblem) return context;
+                if(context.HasProblem) return context;
 
-                if (action == null) return context.CreateProblem($"{nameof(UseElement)}: NULL action argument.");
+                if(action == null) return context.CreateProblem($"{nameof(UseElement)}: NULL action argument.");
 
                 action(context.Element);
 
@@ -177,13 +173,15 @@ namespace Oxygen
         static FlowStep CollectionFilter(Func<ReadOnlyCollection<IWebElement>, IWebElement> filter) =>
             (Context context) =>
             {
-                if (filter == null) return context.CreateProblem($"{nameof(CollectionFilter)}: NULL filter");
-                if (context.Collection == null) return context.CreateProblem($"{nameof(CollectionFilter)}: missing collection");
-                if (context.Collection.Count == 0) return context.CreateProblem($"{nameof(CollectionFilter)}: empty collection");
+                if(filter == null) return context.CreateProblem("CollectionFilter: NULL filter passed");
+                if(context.Collection == null) return context.CreateProblem("CollectionFilter: missing collection");
 
-                IWebElement child = filter(context.Collection);
+                int count = context.Collection.Count;
+                if(count == 0) return context.CreateProblem("CollectionFilter: empty collection");
 
-                if (child == null) { return context.CreateProblem($"{nameof(CollectionFilter): failed}"); }
+                IWebElement child = filter.Invoke(context.Collection);
+
+                if(child == null) return context.CreateProblem($"CollectionFilter: no matches in {count} item(s)");
 
                 return context.NextContext(child as WebElement);
             };
@@ -193,7 +191,7 @@ namespace Oxygen
         /// </summary>
         public static FlowStep FirstContainingText(string text) =>
             (Context context) =>
-                   (context) | CollectionFilter(collection => collection.FirstOrDefault(e => e.Text.Contains(text)));
+                context | CollectionFilter(collection => collection.FirstOrDefault(e => e.Text.Contains(text)));
 
 
         /// <summary>
@@ -201,7 +199,7 @@ namespace Oxygen
         /// </summary>
         public static FlowStep LastContainingText(string text) =>
             (Context context) =>
-                    (context) | CollectionFilter(collection => collection.LastOrDefault(e => e.Text.Contains(text)));
+                context | CollectionFilter(collection => collection.LastOrDefault(e => e.Text.Contains(text)));
 
 
         /// <summary>
@@ -209,14 +207,14 @@ namespace Oxygen
         /// </summary>
         public static Context Click(Context context)
         {
-            var c = context.Element;
+            WebElement c = context.Element;
 
-            if (c == null)
+            if(c == null)
             {
                 return context.CreateProblem(LogError($"{nameof(Click)}: NULL element!", null));
             }
 
-            if (Retry(() => SpecificClick(context)))
+            if(Retry(() => SpecificClick(context)))
             {
                 return context;
             }
@@ -229,27 +227,24 @@ namespace Oxygen
         /// </summary>
         static bool SpecificClick(Context context)
         {
-            var c = context.Element;
+            WebElement c = context.Element;
+            var tag = c.TagName;
 
-            switch (c.TagName)
+            switch(tag)
             {
                 case "li":
                     new Actions(context.Driver).Click(c).Perform();
                     return true;
 
-                case "a":
-                    var href = c.GetAttribute("href");
-                    if (href.StartsWith("javascript:", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        c.Click();
-                    }
-                    else
-                    {
-                        context.Driver.Navigate().GoToUrl(href);
-                    }
+                case "option":
+                    c.Click();
                     return true;
 
                 default:
+                    if(c.Displayed && c.Enabled)
+                    {
+                        new Actions(context.Driver).MoveToElement(c).Perform();
+                    }
                     c.Click();
                     return true;
             }
@@ -297,22 +292,22 @@ namespace Oxygen
         public static FlowStep SetText(string text) =>
             (Context context) =>
             {
-                if (context.Element == null)
+                if(context.Element == null)
                 {
                     return context.CreateProblem($"{nameof(SetText)}: missing context Element");
                 }
 
-                var element = context.Element;
+                WebElement element = context.Element;
 
-                if (!Retry(() => element.Displayed))
+                if(!Retry(() => element.Displayed))
                 {
                     return context.CreateProblem($"{nameof(SetText)}: element not displayed");
                 }
 
-                switch (element.TagName)
+                switch(element.TagName)
                 {
                     case "input":
-                        if (!string.IsNullOrEmpty(element.GetAttribute("value")))
+                        if(!string.IsNullOrEmpty(element.GetAttribute("value")))
                         {
                             element.SendKeys(" ");
                             element.Clear();
@@ -321,7 +316,7 @@ namespace Oxygen
                         break;
 
                     case "textarea":
-                        element.Clear();
+                        context.Driver.ExecuteScript("arguments[0].value='';", element);
                         element.SendKeys(text);
                         break;
 
@@ -340,9 +335,9 @@ namespace Oxygen
         /// </summary>
         public static Context PressEnter(Context context)
         {
-            var c = context.Element;
+            WebElement c = context.Element;
 
-            if (c == null)
+            if(c == null)
             {
                 return context.CreateProblem("PressEnter: Missing context element");
             }
@@ -355,32 +350,41 @@ namespace Oxygen
         /// <summary>
         /// Select display text in the combobox context element
         /// </summary>
+        public static FlowStep SelectComboText(string selector, string value) =>
+            (Context context) => (Find(selector)(context)).Bind(c => SelectComboText(c, value));
+
+        /// <summary>
+        /// Select display text in the combobox context element
+        /// </summary>
         public static Context SelectComboText(Context context, string value)
         {
-            var c = context.Element;
+            WebElement combo = context.Element;
 
-            if (c == null)
+            if(combo == null)
             {
                 return context.CreateProblem($"{nameof(SelectComboText)}: Missing context element");
             }
 
-            var item = c.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
+
+            IWebElement item = combo.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
                 .FirstOrDefault(opt => opt.Text == value);
 
-            if (item == null && value.EndsWith("*", StringComparison.OrdinalIgnoreCase))
+            if(item == null && value.EndsWith("*", StringComparison.OrdinalIgnoreCase))
             {
-                item = c.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
+                item = combo.FindElements(SeleniumFindMechanism.TagNameMechanism, "option")
                     .FirstOrDefault(opt => opt.Text.StartsWith(value[..^1], StringComparison.InvariantCultureIgnoreCase));
             }
 
-            if (item == null)
+            if(item == null)
             {
                 return context.CreateProblem($"Can't find combo text '{value}'");
             }
 
+            new Actions(context.Driver).MoveToElement(combo).Perform();
+
             item.Click();
 
-            return context.NextContext(c);
+            return context.NextContext(combo);
         }
 
         /// <summary>
@@ -389,7 +393,7 @@ namespace Oxygen
         public static FlowStep FollowLink(string linkID, string targetTitle) =>
             (Context context) =>
             {
-                if (Retry(() => Click(linkID)(context).Title == targetTitle))
+                if(Retry(() => Click(linkID)(context).Title == targetTitle))
                 {
                     return context;
                 }
@@ -400,12 +404,12 @@ namespace Oxygen
         public static FlowStep AssertAttributeValue(string attributeName, string expected) =>
             (Context context) =>
             {
-                if (!context.HasElement)
+                if(!context.HasElement)
                 {
                     return context.CreateProblem($"AssertAttributeValue {attributeName}='{expected}': Missing context element.");
                 }
 
-                var actual = context.Element.GetAttribute(attributeName);
+                string actual = context.Element.GetAttribute(attributeName);
 
                 return actual == expected ?
                     context : context.CreateProblem($"Expected {attributeName}='{expected}', actual {attributeName}='{actual}'");
@@ -419,5 +423,20 @@ namespace Oxygen
 
         public static FlowStep CreateProblem(object problem) =>
             (Context context) => context.CreateProblem(problem);
+
+        public static FlowStep CreateProblem(Func<Context, object> problem) =>
+            (Context context) => context.CreateProblem(problem(context));
+
+        public static FlowStep CheckDropdownListValues(List<string> expectedElements)
+            => (Context context) =>
+            {
+                foreach(var item in expectedElements)
+                {
+                    If((Context context) => ExistsOnXPath(context, $"//*[@id=\"Category\"]/option[@value=\"{item}\"]", 1.0),
+                        (Context context) => context.CreateProblem($"There are difference between the allowed and available usertypes (epattr.Function={item})!"));
+                }
+
+                return context;
+            };
     }
 }
