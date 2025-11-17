@@ -3,45 +3,42 @@
 * by karel66, 2023
 */
 
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
-
-using OpenQA.Selenium;
-using OpenQA.Selenium.Support.UI;
 
 namespace Oxygen
 {
     /// <summary>
     /// Flow context with monadic Bind. 
     /// </summary>
-    public struct Context
+    public readonly record struct Context
     {
         /// <summary>
         /// Selenium driver instance
         /// </summary>
-        public WebDriver Driver { get; private set; }
+        public readonly WebDriver Driver { get; }
 
         /// <summary>
         /// Remote web element
         /// </summary>
-        public WebElement Element { get; private set; }
+        public readonly WebElement Element { get; }
 
         /// <summary>
         /// Collection of elements
         /// </summary>
-        public ReadOnlyCollection<IWebElement> Collection { get; private set; }
+        public readonly ReadOnlyCollection<IWebElement> Collection { get; }
 
 
-        public object UserCredentials { get; set; }
+        public readonly object UserCredentials { get; }
 
         /// <summary>
         /// Run-time error result
         /// </summary>
-        public object Problem { get; private set; }
-
-        string _taceIndent = "";
+        public readonly object Problem { get; }
 
         /// <summary>
         /// Generic constructor
@@ -98,7 +95,7 @@ namespace Oxygen
         /// </summary>
         internal Context NextContext(Func<WebElement> generator)
         {
-            if(generator == null)
+            if (generator == null)
             {
                 return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
             }
@@ -107,7 +104,7 @@ namespace Oxygen
             {
                 return NextContext(generator.Invoke());
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return CreateProblem(x);
             }
@@ -125,7 +122,7 @@ namespace Oxygen
         /// </summary>
         internal Context NextContext(Func<ReadOnlyCollection<IWebElement>> generator)
         {
-            if(generator == null)
+            if (generator == null)
             {
                 return CreateProblem($"{nameof(NextContext)}: NULL argument: {nameof(generator)}");
             }
@@ -134,7 +131,7 @@ namespace Oxygen
             {
                 return NextContext(generator.Invoke());
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return CreateProblem(x);
             }
@@ -148,7 +145,7 @@ namespace Oxygen
         {
             problem ??= "Null passed as problem!";
 
-            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)}{_taceIndent}Problem created: {problem}");
+            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)}Problem created: {problem}");
 
             return new Context(this.Driver, this.Element, this.Collection, problem, this.UserCredentials);
         }
@@ -159,21 +156,19 @@ namespace Oxygen
         /// </summary>
         public Context Bind(FlowStep step)
         {
-            if(this.HasProblem) return this; // short-circuit problems
+            if (this.HasProblem) return this; // short-circuit problems
 
-            if(step == null) return CreateProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
+            if (step == null) return CreateProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
 
             string signature = $"{ExtractMethodName(step.Method.Name)} ({FormatTarget(step.Target)})";
 
-            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)} {_taceIndent}{signature}");
-
-            _taceIndent += "  ";
+            Console.WriteLine($"{DateTime.Now.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture)} {signature}");
 
             try
             {
                 return step.Invoke(this);
             }
-            catch(UnhandledAlertException)
+            catch (UnhandledAlertException)
             {
                 WebDriverWait wait = new(Driver, TimeSpan.FromSeconds(5));
 
@@ -183,7 +178,7 @@ namespace Oxygen
                     {
                         return drv.SwitchTo().Alert();
                     }
-                    catch(NoAlertPresentException)
+                    catch (NoAlertPresentException)
                     {
                         return null;
                     }
@@ -193,78 +188,72 @@ namespace Oxygen
 
                 return step.Invoke(this);
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return CreateProblem(x);
             }
-            finally
-            {
-                if(_taceIndent.Length > 1)
-                {
-                    _taceIndent = _taceIndent.Remove(_taceIndent.Length - 2);
-                }
-            }
+
         }
 
         static string FormatTarget(object target)
         {
             StringBuilder args = new();
 
-            if(target != null)
+            if (target != null)
             {
                 Type type = target.GetType();
 
-                foreach(System.Reflection.FieldInfo field in type.GetFields())
+                foreach (System.Reflection.FieldInfo field in type.GetFields())
                 {
                     object argval = field.GetValue(target);
 
-                    if(argval == null)
+                    if (argval == null)
                     {
                         args.AppendWithComma($"{field.Name}=null");
                     }
-                    else if(field.FieldType.Name == "String")
+                    else if (field.FieldType.Name == "String")
                     {
                         args.AppendWithComma($"{field.Name}=\"{argval}\"");
                     }
-                    else if(field.FieldType.Name == "Char")
+                    else if (field.FieldType.Name == "Char")
                     {
                         args.AppendWithComma($"{field.Name}='{argval}'");
                     }
-                    else if(field.FieldType.IsValueType)
+                    else if (field.FieldType.IsValueType)
                     {
                         args.AppendWithComma($"{field.Name}={argval}");
                     }
-                    else if(field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "Array")
+                    else if (field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "Array")
                     {
                         args.AppendWithComma($"{field.Name}=[");
 
-                        foreach(object value in (Array)argval)
+                        foreach (object value in (Array)argval)
                         {
                             args.Append($"\"{value}\", ");
                         }
 
-                        args.Append("]");
+                        args.Append(']');
                     }
 
-                    else if(field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "MulticastDelegate")
+                    else if (field.FieldType.BaseType != null && field.FieldType.BaseType.Name == "MulticastDelegate")
                     {
                         args.AppendWithComma($"{field.Name}=[{field.FieldType.Name}]");
                     }
                     else
                     {
                         args.AppendWithComma($"{field.Name}={{");
-                        foreach(string prop in field.FieldType.GetProperties().Select(prop => prop.Name))
+                        foreach (string prop in field.FieldType.GetProperties().Select(prop => prop.Name))
                         {
                             try
                             {
                                 args.Append($"{prop}:\"{field.FieldType.InvokeMember(prop, System.Reflection.BindingFlags.GetProperty, null, argval, null, null)}\", ");
                             }
-                            catch(Exception x)
+                            catch (Exception x)
                             {
                                 args.Append($"{prop}:\"<Exception of type {x.GetType().Name}>\", ");
                             }
                         }
-                        args.Append("}");
+                        args.Append('}');
                     }
 
                 }
@@ -275,7 +264,7 @@ namespace Oxygen
         static string ExtractMethodName(string reflectedName)
         {
             string name = reflectedName;
-            if(name[0] == '<')
+            if (name[0] == '<')
             {
                 name = name[1..name.IndexOf('>')];
             }
@@ -287,41 +276,30 @@ namespace Oxygen
         /// </summary>
         public Context Use(Action<Context> action)
         {
-            if(this.HasProblem) return this; // short-circuit problems
+            if (this.HasProblem) return this; // short-circuit problems
 
-            if(action == null) return CreateProblem($"{nameof(Use)}: NULL argument: {nameof(action)}");
+            if (action == null) return CreateProblem($"{nameof(Use)}: NULL argument: {nameof(action)}");
 
             try
             {
                 action.Invoke(this);
                 return this;
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 return CreateProblem(x);
             }
         }
 
-        public readonly bool TitleStartsWith(string title)
-        {
-            while(string.IsNullOrEmpty(this.Title))
-            {
-                System.Threading.Thread.Sleep(100);
-            }
+        public readonly bool TitleStartsWith(string title) =>
+            new WebDriverWait(this.Driver, TimeSpan.FromSeconds(10))
+                .Until(d => d.Title.StartsWith(title, StringComparison.InvariantCultureIgnoreCase));
 
-            for(int i = 0; i < 10 && !this.Title.StartsWith(title, StringComparison.InvariantCultureIgnoreCase); i++)
-            {
-                System.Threading.Thread.Sleep(100);
-            }
-
-            return this.Title.StartsWith(title, StringComparison.InvariantCultureIgnoreCase);
-
-        }
 
         public override readonly string ToString()
         {
-            if(HasProblem) return Problem.ToString();
-            if(Driver != null) return Driver.ToString();
+            if (HasProblem) return Problem.ToString();
+            if (Driver != null) return Driver.ToString();
             return "Uninitialized Context";
         }
 

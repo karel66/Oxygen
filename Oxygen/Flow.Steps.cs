@@ -3,14 +3,14 @@
 * by karel66, 2023
  */
 
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
-
-using OpenQA.Selenium;
-using OpenQA.Selenium.Interactions;
 
 namespace Oxygen
 {
@@ -77,13 +77,23 @@ namespace Oxygen
         /// <summary>
         /// Retries until success or the given number of attempts has failed.
         /// </summary>
-        public static bool Retry(Func<bool> success, int numberOfAttempts = 10)
+        public static bool Retry(Func<bool> success, int maxAttempts = 10)
         {
             ArgumentNullException.ThrowIfNull(success, nameof(success));
 
             int delay = 0;
 
-            for(int i = 1; i <= numberOfAttempts; i++)
+            if(maxAttempts < 1)
+            {
+                maxAttempts = 1;
+            }
+
+            if (maxAttempts > 10)
+            {
+                maxAttempts = 10;
+            }
+
+            for (int i = 1; i <= maxAttempts; i++)
             {
                 try
                 {
@@ -271,8 +281,6 @@ namespace Oxygen
             {
                 new Actions(next.Driver).DoubleClick(next.Element).Perform();
 
-                Thread.Sleep(10);
-
                 return next;
             });
 
@@ -427,16 +435,5 @@ namespace Oxygen
         public static FlowStep CreateProblem(Func<Context, object> problem) =>
             (Context context) => context.CreateProblem(problem(context));
 
-        public static FlowStep CheckDropdownListValues(List<string> expectedElements)
-            => (Context context) =>
-            {
-                foreach(var item in expectedElements)
-                {
-                    If((Context context) => ExistsOnXPath(context, $"//*[@id=\"Category\"]/option[@value=\"{item}\"]", 1.0),
-                        (Context context) => context.CreateProblem($"There are difference between the allowed and available usertypes (epattr.Function={item})!"));
-                }
-
-                return context;
-            };
     }
 }
