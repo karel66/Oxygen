@@ -3,13 +3,12 @@
 * by karel66, 2023
 */
 
-using System;
-using System.Diagnostics;
-
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Edge;
 using OpenQA.Selenium.Firefox;
+using System;
+using System.Diagnostics;
 
 namespace Oxygen
 {
@@ -32,29 +31,41 @@ namespace Oxygen
         /// <returns>Driver in context</returns>
         public static Context CreateContext(BrowserBrand browserBrand, Uri startPageUrl, double implicitWait = 1.0, bool killOthers = false, string driverDirectory = null, DriverOptions options = null)
         {
-            if(startPageUrl == null) { throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}"); }
+            if (startPageUrl == null) { throw new ArgumentException($"{nameof(CreateContext)}: NULL argument: {nameof(startPageUrl)}"); }
 
             WebDriver driver = null;
 
-            switch(browserBrand)
+            switch (browserBrand)
             {
                 case BrowserBrand.Chrome:
                     {
-                        if(killOthers) KillBrowserProcesses("chrome");
+                        if (killOthers)
+                        {
+                            KillBrowserProcesses("chrome");
+                        }
+
                         driver = InitChromeDriver(driverDirectory, options);
                     }
                     break;
 
                 case BrowserBrand.Edge:
                     {
-                        if(killOthers) KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver", "msedgedriver");
+                        if (killOthers)
+                        {
+                            KillBrowserProcesses("MicrosoftEdge", "MicrosoftWebDriver", "msedgedriver");
+                        }
+
                         driver = InitEdgeDriver(driverDirectory, options);
                     }
                     break;
 
                 case BrowserBrand.FireFox:
                     {
-                        if(killOthers) KillBrowserProcesses("firefox");
+                        if (killOthers)
+                        {
+                            KillBrowserProcesses("firefox");
+                        }
+
                         driver = InitFirefoxDriver(driverDirectory, options);
                     }
                     break;
@@ -111,15 +122,15 @@ namespace Oxygen
 
         static void KillBrowserProcesses(params string[] processNames)
         {
-            foreach(string pname in processNames)
+            foreach (string pname in processNames)
             {
-                foreach(Process process in Process.GetProcessesByName(pname))
+                foreach (Process process in Process.GetProcessesByName(pname))
                 {
                     try
                     {
                         process.Kill();
                     }
-                    catch(Exception x)
+                    catch (Exception x)
                     {
                         Console.WriteLine(x.ToString());
                     }

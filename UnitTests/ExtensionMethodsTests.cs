@@ -1,8 +1,6 @@
-using System.Text;
-
-using Oxygen;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Oxygen;
+using System.Text;
 
 namespace UnitTests
 {

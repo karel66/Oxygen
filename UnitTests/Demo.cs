@@ -2,11 +2,9 @@
  * Oxygen Flow 
  * by karel66, 2023
  */
-using System;
-
-using Oxygen;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Oxygen;
+using System;
 
 namespace UnitTests
 {

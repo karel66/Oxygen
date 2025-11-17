@@ -156,9 +156,15 @@ namespace Oxygen
         /// </summary>
         public Context Bind(FlowStep step)
         {
-            if (this.HasProblem) return this; // short-circuit problems
+            if (this.HasProblem)
+            {
+                return this; // short-circuit problems
+            }
 
-            if (step == null) return CreateProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
+            if (step == null)
+            {
+                return CreateProblem($"{nameof(Bind)}: NULL argument: {nameof(step)}");
+            }
 
             string signature = $"{ExtractMethodName(step.Method.Name)} ({FormatTarget(step.Target)})";
 
@@ -276,9 +282,15 @@ namespace Oxygen
         /// </summary>
         public Context Use(Action<Context> action)
         {
-            if (this.HasProblem) return this; // short-circuit problems
+            if (this.HasProblem)
+            {
+                return this; // short-circuit problems
+            }
 
-            if (action == null) return CreateProblem($"{nameof(Use)}: NULL argument: {nameof(action)}");
+            if (action == null)
+            {
+                return CreateProblem($"{nameof(Use)}: NULL argument: {nameof(action)}");
+            }
 
             try
             {
@@ -298,8 +310,16 @@ namespace Oxygen
 
         public override readonly string ToString()
         {
-            if (HasProblem) return Problem.ToString();
-            if (Driver != null) return Driver.ToString();
+            if (HasProblem)
+            {
+                return Problem.ToString();
+            }
+
+            if (Driver != null)
+            {
+                return Driver.ToString();
+            }
+
             return "Uninitialized Context";
         }
 
